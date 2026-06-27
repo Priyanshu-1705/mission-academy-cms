@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.route.js";
 import bannerRoutes from "./routes/banner.route.js";
 import publicRoutes from "./routes/public.route.js";
 import leaderRoutes from "./routes/leader.route.js";
+import eventRoutes from "./routes/event.route.js";
 
 dotenv.config();
 connectDB();
@@ -23,6 +24,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/leaders", leaderRoutes);
+app.use("/api/events", eventRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -38,7 +38,6 @@ export const getLeaders = async (req, res) => {
             data: leaders
         });
     } catch (error) {
-        console.error("[Leader Controller] Get Leaders:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -61,7 +60,6 @@ export const getPublicLeaders = async (req, res) => {
             data: leaders
         });
     } catch (error) {
-        console.error("[Leader Controller] Get Public Leaders:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -109,7 +107,6 @@ export const createLeader = async (req, res) => {
             data: leader
         });
     } catch (error) {
-        console.error("[Leader Controller] Create Leader:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -159,7 +156,6 @@ export const updateLeader = async (req, res) => {
             data: leader
         });
     } catch (error) {
-        console.error("[Leader Controller] Update Leader:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -202,7 +198,6 @@ export const deleteLeader = async (req, res) => {
             message: "Leader deleted successfully."
         });
     } catch (error) {
-        console.error("[Leader Controller] Delete Leader:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -276,7 +271,6 @@ export const reorderLeader = async (req, res) => {
             data: updatedLeaders
         });
     } catch (error) {
-        console.error("[Leader Controller] Reorder Leader:", error.message);
         return res.status(500).json({
             success: false,
             message: "Internal server error."
