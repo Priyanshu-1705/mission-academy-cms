@@ -2,6 +2,7 @@ import express from "express";
 import { getPublicBanners } from "../controllers/banner.controller.js";
 import { getPublicLeaders } from "../controllers/leader.controller.js";
 import { getPublicEvents } from "../controllers/event.controller.js";
+import { getPublicAlbums } from "../controllers/album.controller.js";
 /**
  * Public Routes
  *
@@ -30,5 +31,8 @@ router.get("/leaders", getPublicLeaders);
 
 // Retrieve all events (Public Events Page)
 router.get("/events", getPublicEvents);
+
+// Retrieve all albums (Public Gallery Page)
+router.get("/albums", getPublicAlbums);
 
 export default router;
