@@ -1,5 +1,6 @@
 import express from "express";
 import { getPublicBanners } from "../controllers/banner.controller.js";
+import { getPublicLeaders } from "../controllers/leader.controller.js";
 
 /**
  * Public Routes
@@ -23,5 +24,7 @@ const router = express.Router();
 
 // Retrieve only active banners (Public Homepage)
 router.get("/banners", getPublicBanners);
+
+router.get("/leaders", getPublicLeaders);
 
 export default router;
