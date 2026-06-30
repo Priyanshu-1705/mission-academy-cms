@@ -3,6 +3,8 @@ import { getPublicBanners } from "../controllers/banner.controller.js";
 import { getPublicLeaders } from "../controllers/leader.controller.js";
 import { getPublicEvents } from "../controllers/event.controller.js";
 import { getPublicAlbums } from "../controllers/album.controller.js";
+import { getPublicAchievements } from "../controllers/achievement.controller.js";
+
 /**
  * Public Routes
  *
@@ -34,5 +36,8 @@ router.get("/events", getPublicEvents);
 
 // Retrieve all albums (Public Gallery Page)
 router.get("/albums", getPublicAlbums);
+
+// Retrieve all achievements (Public About Page)
+router.get("/achievements", getPublicAchievements);
 
 export default router;

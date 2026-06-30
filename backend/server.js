@@ -8,6 +8,9 @@ import publicRoutes from "./routes/public.route.js";
 import leaderRoutes from "./routes/leader.route.js";
 import eventRoutes from "./routes/event.route.js";
 import albumRoutes from "./routes/album.route.js";
+import achievementRoutes from "./routes/achievement.route.js";
+import transferCertificateRoutes from "./routes/transferCertificate.route.js";
+
 
 dotenv.config();
 connectDB();
@@ -27,6 +30,8 @@ app.use("/api/public", publicRoutes);
 app.use("/api/leaders", leaderRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/albums", albumRoutes);
+app.use("/api/achievements", achievementRoutes);
+app.use("/api/transfer-certificates", transferCertificateRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
