@@ -8,9 +8,9 @@ import publicRoutes from "./routes/public.route.js";
 import leaderRoutes from "./routes/leader.route.js";
 import eventRoutes from "./routes/event.route.js";
 import albumRoutes from "./routes/album.route.js";
-import achievementRoutes from "./routes/achievement.route.js";
 import transferCertificateRoutes from "./routes/transferCertificate.route.js";
-
+import boardAchieverRoutes from "./routes/boardAchiever.route.js";
+import otherAchievementRoutes from "./routes/otherAchievement.route.js";
 
 dotenv.config();
 connectDB();
@@ -24,14 +24,27 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", message: "Mission Academy Baheri API is running" });
 });
 
-app.use("/api/auth", authRoutes);
-app.use("/api/banners", bannerRoutes);
+// Public
 app.use("/api/public", publicRoutes);
+
+// Authentication
+app.use("/api/auth", authRoutes);
+
+// CMS Modules
+app.use("/api/banners", bannerRoutes);
 app.use("/api/leaders", leaderRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/albums", albumRoutes);
-app.use("/api/achievements", achievementRoutes);
+app.use("/api/board-achievers", boardAchieverRoutes);
+app.use("/api/other-achievements", otherAchievementRoutes);
 app.use("/api/transfer-certificates", transferCertificateRoutes);
+
+app.use((req, res) => {
+    return res.status(404).json({
+        success: false,
+        message: "Route not found."
+    });
+});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
