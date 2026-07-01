@@ -5,7 +5,7 @@ import { getPublicEvents } from "../controllers/event.controller.js";
 import { getPublicAlbums } from "../controllers/album.controller.js";
 import { getPublicBoardAchievers } from "../controllers/boardAchiever.controller.js";
 import { getPublicOtherAchievements } from "../controllers/otherAchievement.controller.js";
-
+import { getPublicDisclosures } from "../controllers/disclosure.controller.js";
 
 const router = express.Router();
 
@@ -26,6 +26,9 @@ router.get("/board-achievers", getPublicBoardAchievers);
 
 // Retrieve all other achievements (Public Achievements Page)
 router.get("/other-achievements", getPublicOtherAchievements);
+
+// Retrieve all disclosures (Public Disclosures Page)
+router.get("/disclosures", getPublicDisclosures);
 
 
 export default router;

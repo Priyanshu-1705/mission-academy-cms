@@ -11,6 +11,7 @@ import albumRoutes from "./routes/album.route.js";
 import transferCertificateRoutes from "./routes/transferCertificate.route.js";
 import boardAchieverRoutes from "./routes/boardAchiever.route.js";
 import otherAchievementRoutes from "./routes/otherAchievement.route.js";
+import disclosureRoutes from "./routes/disclosure.route.js";
 
 dotenv.config();
 connectDB();
@@ -38,7 +39,9 @@ app.use("/api/albums", albumRoutes);
 app.use("/api/board-achievers", boardAchieverRoutes);
 app.use("/api/other-achievements", otherAchievementRoutes);
 app.use("/api/transfer-certificates", transferCertificateRoutes);
+app.use("/api/disclosures", disclosureRoutes);
 
+// Error handling
 app.use((req, res) => {
     return res.status(404).json({
         success: false,
