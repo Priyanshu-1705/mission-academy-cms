@@ -12,6 +12,7 @@ import transferCertificateRoutes from "./routes/transferCertificate.route.js";
 import boardAchieverRoutes from "./routes/boardAchiever.route.js";
 import otherAchievementRoutes from "./routes/otherAchievement.route.js";
 import disclosureRoutes from "./routes/disclosure.route.js";
+import registrationRoutes from "./routes/registration.route.js";
 
 dotenv.config();
 connectDB();
@@ -40,6 +41,7 @@ app.use("/api/board-achievers", boardAchieverRoutes);
 app.use("/api/other-achievements", otherAchievementRoutes);
 app.use("/api/transfer-certificates", transferCertificateRoutes);
 app.use("/api/disclosures", disclosureRoutes);
+app.use("/api/registrations", registrationRoutes);
 
 // Error handling
 app.use((req, res) => {

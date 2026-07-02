@@ -6,6 +6,7 @@ import { getPublicAlbums } from "../controllers/album.controller.js";
 import { getPublicBoardAchievers } from "../controllers/boardAchiever.controller.js";
 import { getPublicOtherAchievements } from "../controllers/otherAchievement.controller.js";
 import { getPublicDisclosures } from "../controllers/disclosure.controller.js";
+import { submitRegistration } from "../controllers/registration.controller.js";
 
 const router = express.Router();
 
@@ -29,6 +30,9 @@ router.get("/other-achievements", getPublicOtherAchievements);
 
 // Retrieve all disclosures (Public Disclosures Page)
 router.get("/disclosures", getPublicDisclosures);
+
+// Submit a new admission registration (Public Admissions Page)
+router.post("/registrations", submitRegistration);
 
 
 export default router;
