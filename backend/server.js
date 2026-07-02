@@ -14,6 +14,7 @@ import otherAchievementRoutes from "./routes/otherAchievement.route.js";
 import disclosureRoutes from "./routes/disclosure.route.js";
 import registrationRoutes from "./routes/registration.route.js";
 import enquiryRoutes from "./routes/enquiry.route.js";
+import userRoutes from "./routes/user.route.js";
 
 dotenv.config();
 connectDB();
@@ -44,6 +45,7 @@ app.use("/api/transfer-certificates", transferCertificateRoutes);
 app.use("/api/disclosures", disclosureRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/enquiries", enquiryRoutes);
+app.use("/api/users", userRoutes);
 
 // Error handling
 app.use((req, res) => {
