@@ -15,6 +15,7 @@ import disclosureRoutes from "./routes/disclosure.route.js";
 import registrationRoutes from "./routes/registration.route.js";
 import enquiryRoutes from "./routes/enquiry.route.js";
 import userRoutes from "./routes/user.route.js";
+import settingsRoutes from "./routes/settings.route.js";
 
 dotenv.config();
 connectDB();
@@ -46,6 +47,7 @@ app.use("/api/disclosures", disclosureRoutes);
 app.use("/api/registrations", registrationRoutes);
 app.use("/api/enquiries", enquiryRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // Error handling
 app.use((req, res) => {

@@ -8,6 +8,7 @@ import { getPublicOtherAchievements } from "../controllers/otherAchievement.cont
 import { getPublicDisclosures } from "../controllers/disclosure.controller.js";
 import { submitRegistration } from "../controllers/registration.controller.js";
 import { createEnquiry } from "../controllers/enquiry.controller.js";
+import { getPublicSettings } from "../controllers/settings.controller.js";
 
 const router = express.Router();
 
@@ -38,5 +39,7 @@ router.post("/registrations", submitRegistration);
 // Submit a new contact form enquiry (Public Contact Us Page)
 router.post("/enquiries", createEnquiry);
 
+// Retrieve public settings (Public Global)
+router.get("/settings", getPublicSettings);
 
 export default router;
