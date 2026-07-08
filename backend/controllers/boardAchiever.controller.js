@@ -1,5 +1,6 @@
 import BoardAchiever from "../models/BoardAchiever.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
 
 /**
  * Board Achiever Controller
@@ -93,8 +94,6 @@ const validateBoardAchiever = ({
     percentage,
     rank,
     year,
-    imageUrl,
-    cloudinaryPublicId
 }) => {
 
     if (!studentName?.trim()) {
@@ -123,15 +122,6 @@ const validateBoardAchiever = ({
     if (!/^\d{4}-\d{2}$/.test(year)) {
         return "Academic year must be in the format YYYY-YY.";
     }
-
-    if (!imageUrl?.trim()) {
-        return "Image URL is required.";
-    }
-
-    if (!cloudinaryPublicId?.trim()) {
-        return "Cloudinary Public ID is required.";
-    }
-
     return null;
 };
 
@@ -235,8 +225,31 @@ export const getPublicBoardAchievers = async (req, res) => {
  */
 export const createBoardAchiever = async (req, res) => {
     try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Student photo is required."
+            });
+        }
 
-        const validationError = validateBoardAchiever(req.body);
+        const {
+            studentName,
+            className,
+            year
+        } = req.body;
+
+        // Convert multipart/form-data values to numbers
+        const percentage = Number(req.body.percentage);
+        const rank = Number(req.body.rank);
+
+        // Validate user-provided fields
+        const validationError = validateBoardAchiever({
+            studentName,
+            className,
+            percentage,
+            rank,
+            year
+        });
 
         if (validationError) {
             return res.status(400).json({
@@ -245,38 +258,36 @@ export const createBoardAchiever = async (req, res) => {
             });
         }
 
-        const {
-            studentName,
-            className,
-            percentage,
-            rank,
-            year,
-            imageUrl,
-            cloudinaryPublicId
-        } = req.body;
-
+        // Prevent duplicate rank for the same class and academic year
         const duplicateRank = await checkDuplicateRank(
-            className,
-            year,
+            className.trim(),
+            year.trim(),
             rank
         );
 
         if (duplicateRank) {
             return res.status(409).json({
                 success: false,
-                message:
-                    "This rank already exists for the selected class and academic year."
+                message: "This rank already exists for the selected class and academic year."
             });
         }
 
+        // Upload student photo to Cloudinary
+        const { url, publicId } = await uploadToCloudinary(
+            req.file.buffer,
+            "board-achievers",
+            "image"
+        );
+
+        // Save achiever
         const achiever = await BoardAchiever.create({
-            studentName,
-            className,
+            studentName: studentName.trim(),
+            className: className.trim(),
             percentage,
             rank,
-            year,
-            imageUrl,
-            cloudinaryPublicId
+            year: year.trim(),
+            imageUrl: url,
+            cloudinaryPublicId: publicId
         });
 
         return res.status(201).json({
@@ -290,7 +301,6 @@ export const createBoardAchiever = async (req, res) => {
             success: false,
             message: "Internal server error."
         });
-
     }
 };
 
@@ -325,14 +335,29 @@ export const updateBoardAchiever = async (req, res) => {
             });
         }
 
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "board-achievers", "image");
+
+            try {
+                await deleteFromCloudinary(achiever.cloudinaryPublicId, "image");
+            } catch (cloudinaryError) {
+                console.error("[Board Achiever Controller] Failed to delete previous image:", {
+                    achieverId: achiever._id,
+                    publicId: achiever.cloudinaryPublicId,
+                    error: cloudinaryError.message
+                });
+            }
+
+            achiever.imageUrl = url;
+            achiever.cloudinaryPublicId = publicId;
+        }
+
         const {
             studentName,
             className,
             percentage,
             rank,
             year,
-            imageUrl,
-            cloudinaryPublicId
         } = req.body;
 
         /**
@@ -340,11 +365,11 @@ export const updateBoardAchiever = async (req, res) => {
          */
 
         if (studentName !== undefined) {
-            achiever.studentName = studentName;
+            achiever.studentName = studentName.trim();
         }
 
         if (className !== undefined) {
-            achiever.className = className;
+            achiever.className = className.trim();
         }
 
         if (percentage !== undefined) {
@@ -356,15 +381,7 @@ export const updateBoardAchiever = async (req, res) => {
         }
 
         if (year !== undefined) {
-            achiever.year = year;
-        }
-
-        if (imageUrl !== undefined) {
-            achiever.imageUrl = imageUrl;
-        }
-
-        if (cloudinaryPublicId !== undefined) {
-            achiever.cloudinaryPublicId = cloudinaryPublicId;
+            achiever.year = year.trim();
         }
 
         /**
@@ -450,12 +467,15 @@ export const deleteBoardAchiever = async (req, res) => {
             });
         }
 
-        /**
-         * TODO:
-         * Delete the image from Cloudinary using
-         * achiever.cloudinaryPublicId once the
-         * Cloudinary service is integrated.
-         */
+        try {
+            await deleteFromCloudinary(achiever.cloudinaryPublicId, "image");
+        } catch (cloudinaryError) {
+            console.error("[Board Achiever Controller] Failed to delete image on achiever delete:", {
+                achieverId: achiever._id,
+                publicId: achiever.cloudinaryPublicId,
+                error: cloudinaryError.message
+            });
+        }
 
         return res.status(200).json({
             success: true,

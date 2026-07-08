@@ -8,6 +8,8 @@ import {
     deleteBanner,
     reorderBanner
 } from "../controllers/banner.controller.js";
+import { uploadImage } from "../middleware/upload.middleware.js";
+import { handleUploadError } from "../middleware/handleUploadError.middleware.js";
 
 /**
  * Banner Routes
@@ -35,10 +37,20 @@ const router = express.Router();
 router.get("/", protect, getBanners);
 
 // Create a new banner
-router.post("/", protect, createBanner);
+router.post("/", 
+    protect, 
+    uploadImage.single("image"), 
+    handleUploadError, 
+    createBanner
+);
 
 // Update banner details
-router.patch("/:id", protect, updateBanner);
+router.patch("/:id", 
+    protect, 
+    uploadImage.single("image"), 
+    handleUploadError, 
+    updateBanner
+);
 
 // Delete a banner
 router.delete("/:id", protect, deleteBanner);

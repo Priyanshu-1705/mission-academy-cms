@@ -1,5 +1,7 @@
 import express from "express";
 import protect from "../middleware/auth.middleware.js";
+import { uploadImage } from "../middleware/upload.middleware.js";
+import { handleUploadError } from "../middleware/handleUploadError.middleware.js";
 import {
     getBoardAchievers,
     createBoardAchiever,
@@ -15,7 +17,6 @@ import {
  *
  * Responsibilities:
  * - Mount every route behind protect.
- * - Both Super Admin and Principal can manage board achievers.
  *
  * Notes:
  * The public, no-auth route for fetching board achievers lives in
@@ -27,8 +28,16 @@ import {
 const router = express.Router();
 
 router.get("/", protect, getBoardAchievers);
-router.post("/", protect, createBoardAchiever);
-router.patch("/:id", protect, updateBoardAchiever);
+router.post("/", protect,
+    uploadImage.single("image"),
+    handleUploadError,
+    createBoardAchiever
+);
+router.patch("/:id", protect,
+    uploadImage.single("image"),
+    handleUploadError,
+    updateBoardAchiever
+);
 router.delete("/:id", protect, deleteBoardAchiever);
 
 export default router;

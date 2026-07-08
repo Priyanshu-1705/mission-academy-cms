@@ -38,6 +38,10 @@ const leaderSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        cloudinaryPublicId: {
+            type: String,
+            required: true
+        },
         // Role/title (e.g. "Principal", "Manager & Founder").
         designation: {
             type: String,

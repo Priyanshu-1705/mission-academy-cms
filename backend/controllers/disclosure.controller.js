@@ -1,5 +1,7 @@
 import Disclosure from "../models/Disclosure.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
+
 const VALID_CATEGORIES = [
     "general_information",
     "documents_information",
@@ -96,7 +98,7 @@ export const getPublicDisclosures = async (req, res) => {
  * - null if valid
  * - error message if invalid
  */
-const validateDisclosure = ({ title, category, pdfUrl, cloudinaryPublicId, displayOrder }) => {
+const validateDisclosure = ({ title, documentCode, category, displayOrder }) => {
     if (!title?.trim()) {
         return "Title is required.";
     }
@@ -108,12 +110,6 @@ const validateDisclosure = ({ title, category, pdfUrl, cloudinaryPublicId, displ
     }
     if (!VALID_CATEGORIES.includes(category)) {
         return "Invalid category.";
-    }
-    if (!pdfUrl?.trim()) {
-        return "PDF URL is required.";
-    }
-    if (!cloudinaryPublicId?.trim()) {
-        return "Cloudinary Public ID is required.";
     }
     if (
         !Number.isInteger(displayOrder) ||
@@ -131,7 +127,14 @@ const validateDisclosure = ({ title, category, pdfUrl, cloudinaryPublicId, displ
  */
 export const createDisclosure = async (req, res) => {
     try {
-        const validationError = validateDisclosure(req.body);
+        const { title, documentCode, category } = req.body;
+        const displayOrder = Number(req.body.displayOrder);
+        const validationError = validateDisclosure({
+            title,
+            documentCode,
+            category,
+            displayOrder
+        });
         if (validationError) {
             return res.status(400).json({
                 success: false,
@@ -139,14 +142,20 @@ export const createDisclosure = async (req, res) => {
             });
         }
 
-        const { title, documentCode, category, pdfUrl, cloudinaryPublicId, displayOrder } = req.body;
+
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "PDF document is required." });
+        }
+
+        const { url, publicId } = await uploadToCloudinary(req.file.buffer, "disclosures", "raw");
 
         const disclosure = await Disclosure.create({
-            title,
-            documentCode,
-            category,
-            pdfUrl,
-            cloudinaryPublicId,
+            title: title.trim(),
+            documentCode: documentCode.trim(),
+            category: category.trim(),
+            pdfUrl: url,
+            cloudinaryPublicId: publicId,
             displayOrder
         });
 
@@ -192,22 +201,20 @@ export const updateDisclosure = async (req, res) => {
             });
         }
 
-        const { title, documentCode, category, pdfUrl, cloudinaryPublicId, displayOrder } = req.body;
+        const { title, documentCode, category } = req.body;
+        const displayOrder =
+            req.body.displayOrder !== undefined
+                ? Number(req.body.displayOrder)
+                : undefined;
 
         if (title !== undefined) {
-            disclosure.title = title;
+            disclosure.title = title.trim();
         }
         if (documentCode !== undefined) {
-            disclosure.documentCode = documentCode;
+            disclosure.documentCode = documentCode.trim();
         }
         if (category !== undefined) {
-            disclosure.category = category;
-        }
-        if (pdfUrl !== undefined) {
-            disclosure.pdfUrl = pdfUrl;
-        }
-        if (cloudinaryPublicId !== undefined) {
-            disclosure.cloudinaryPublicId = cloudinaryPublicId;
+            disclosure.category = category.trim();
         }
         if (displayOrder !== undefined) {
             disclosure.displayOrder = displayOrder;
@@ -219,6 +226,23 @@ export const updateDisclosure = async (req, res) => {
                 success: false,
                 message: validationError
             });
+        }
+
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "disclosures", "raw");
+
+            try {
+                await deleteFromCloudinary(disclosure.cloudinaryPublicId, "raw");
+            } catch (cloudinaryError) {
+                console.error("[Disclosure Controller] Failed to delete previous PDF:", {
+                    documentId: disclosure._id,
+                    publicId: disclosure.cloudinaryPublicId,
+                    error: cloudinaryError.message
+                });
+            }
+
+            disclosure.pdfUrl = url;
+            disclosure.cloudinaryPublicId = publicId;
         }
 
         await disclosure.save();
@@ -244,9 +268,6 @@ export const updateDisclosure = async (req, res) => {
  * Admin-facing.
  *
  * Validates the disclosure ID before attempting deletion.
- * Currently only removes the MongoDB record. Cloudinary PDF
- * deletion will be added once Cloudinary integration is
- * implemented across the project.
  */
 export const deleteDisclosure = async (req, res) => {
     try {
@@ -268,12 +289,15 @@ export const deleteDisclosure = async (req, res) => {
             });
         }
 
-        /**
-         * TODO:
-         * Delete the PDF from Cloudinary using
-         * disclosure.cloudinaryPublicId once the
-         * Cloudinary service is integrated.
-         */
+        try {
+            await deleteFromCloudinary(disclosure.cloudinaryPublicId, "raw");
+        } catch (cloudinaryError) {
+            console.error("[Disclosure Controller] Failed to delete PDF on document delete:", {
+                documentId: disclosure._id,
+                publicId: disclosure.cloudinaryPublicId,
+                error: cloudinaryError.message
+            });
+        }
 
         return res.status(200).json({
             success: true,

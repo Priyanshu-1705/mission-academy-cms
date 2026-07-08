@@ -54,7 +54,6 @@ export const getCertificates = async (req, res) => {
       data: certificates
     });
   } catch (error) {
-    console.error("[Transfer Certificate Controller] Get Certificates:", error.message);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
@@ -98,7 +97,6 @@ export const createCertificate = async (req, res) => {
       data: certificate
     });
   } catch (error) {
-    console.error("[Transfer Certificate Controller] Create Certificate:", error.message);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
@@ -151,7 +149,6 @@ export const updateCertificate = async (req, res) => {
       data: certificate
     });
   } catch (error) {
-    console.error("[Transfer Certificate Controller] Update Certificate:", error.message);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
@@ -179,7 +176,6 @@ export const deleteCertificate = async (req, res) => {
 
     return res.status(200).json({ success: true, message: "Transfer certificate deleted successfully." });
   } catch (error) {
-    console.error("[Transfer Certificate Controller] Delete Certificate:", error.message);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };
@@ -208,7 +204,6 @@ export const lookupCertificateByAdmissionNumber = async (req, res) => {
       pdfUrl: certificate.pdfUrl
     });
   } catch (error) {
-    console.error("[Transfer Certificate Controller] Lookup Certificate:", error.message);
     return res.status(500).json({ success: false, message: "Internal server error." });
   }
 };

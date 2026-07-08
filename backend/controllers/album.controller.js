@@ -1,5 +1,6 @@
 import Album from "../models/Album.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
 
 /**
  * Album Controller
@@ -72,32 +73,38 @@ export const getPublicAlbums = async (req, res) => {
  * albums are created empty and photos are added afterward through
  * addImageToAlbum, matching the frontend's "Create Album" → "Manage
  * Photos" two-step workflow.
+ * Cover image is optional at creation — matches the frontend's
+ * "create empty, add photos later" workflow. If provided, it's
+ * uploaded the same way as any other image field.
  */
 export const createAlbum = async (req, res) => {
     try {
-        const { name, description, coverImageUrl, date } = req.body;
+        const { name, description, date } = req.body;
 
-        if (!name?.trim()) {
-            return res.status(400).json({
-                success: false,
-                message: "Name and date are required."
-            });
+        if (!name?.trim() || !date) {
+            return res.status(400).json({ success: false, message: "Name and date are required." });
         }
 
-        // In createAlbum, after checking name/date exist:
         const parsedDate = new Date(date);
         if (isNaN(parsedDate.getTime())) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid album date."
-            });
+            return res.status(400).json({ success: false, message: "Invalid album date." });
+        }
+
+        let coverImageUrl;
+        let coverImagePublicId;
+
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "albums/covers", "image");
+            coverImageUrl = url;
+            coverImagePublicId = publicId;
         }
 
         const album = await Album.create({
             name,
             description,
+            date,
             coverImageUrl,
-            date: parsedDate
+            coverImagePublicId
         });
 
         return res.status(201).json({
@@ -115,6 +122,7 @@ export const createAlbum = async (req, res) => {
  *
  * Updates album metadata only — not images. Adding/removing photos
  * has its own dedicated endpoints below.
+ * Cover image replacement is optional, same pattern as Banner/Leader.
  */
 export const updateAlbum = async (req, res) => {
     try {
@@ -124,7 +132,7 @@ export const updateAlbum = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid album id." });
         }
 
-        const { name, description, coverImageUrl, date } = req.body;
+        const { name, description, date } = req.body;
         const album = await Album.findById(id);
 
         if (!album) {
@@ -135,23 +143,36 @@ export const updateAlbum = async (req, res) => {
             if (!name.trim()) {
                 return res.status(400).json({ success: false, message: "Name cannot be empty." });
             }
-            album.name = name;
+            album.name = name.trim();
         }
 
-        
+        if (description !== undefined) album.description = description.trim();
 
-        if (description !== undefined) album.description = description;
-        if (coverImageUrl !== undefined) album.coverImageUrl = coverImageUrl;
-        // In updateAlbum, replacing the plain "if (date !== undefined) album.date = date;" line:
         if (date !== undefined) {
             const parsedDate = new Date(date);
             if (isNaN(parsedDate.getTime())) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid album date."
-                });
+                return res.status(400).json({ success: false, message: "Invalid album date." });
             }
             album.date = date;
+        }
+
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "albums/covers", "image");
+
+            if (album.coverImagePublicId) {
+                try {
+                    await deleteFromCloudinary(album.coverImagePublicId, "image");
+                } catch (cloudinaryError) {
+                    console.error("[Album Controller] Failed to delete previous cover image:", {
+                        albumId: album._id,
+                        publicId: album.coverImagePublicId,
+                        error: cloudinaryError.message
+                    });
+                }
+            }
+
+            album.coverImageUrl = url;
+            album.coverImagePublicId = publicId;
         }
 
         await album.save();
@@ -169,8 +190,12 @@ export const updateAlbum = async (req, res) => {
 /**
  * DELETE /api/albums/:id
  *
- * Deletes the album and all of its embedded photos at once, since
- * the photos live inside the album document itself.
+ * Deletes the album's cover image AND every embedded photo from
+ * Cloudinary, since the whole album (and all its photos) is being
+ * removed at once. Each deletion is independently best-effort — one
+ * failing must not stop the others from being attempted, and none
+ * of them should turn an already-successful database deletion into
+ * a misleading 500.
  */
 export const deleteAlbum = async (req, res) => {
     try {
@@ -186,6 +211,31 @@ export const deleteAlbum = async (req, res) => {
             return res.status(404).json({ success: false, message: "Album not found." });
         }
 
+        if (album.coverImagePublicId) {
+            try {
+                await deleteFromCloudinary(album.coverImagePublicId, "image");
+            } catch (cloudinaryError) {
+                console.error("[Album Controller] Failed to delete cover image on album delete:", {
+                    albumId: album._id,
+                    publicId: album.coverImagePublicId,
+                    error: cloudinaryError.message
+                });
+            }
+        }
+
+        for (const image of album.images) {
+            try {
+                await deleteFromCloudinary(image.publicId, "image");
+            } catch (cloudinaryError) {
+                console.error("[Album Controller] Failed to delete album photo on album delete:", {
+                    albumId: album._id,
+                    imageId: image._id,
+                    publicId: image.publicId,
+                    error: cloudinaryError.message
+                });
+            }
+        }
+
         return res.status(200).json({ success: true, message: "Album deleted successfully." });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Internal server error." });
@@ -196,6 +246,8 @@ export const deleteAlbum = async (req, res) => {
  * POST /api/albums/:id/images
  *
  * Adds a single photo to an existing album's embedded images array.
+ * Photo file is required — this endpoint's entire purpose is adding
+ * a real photo to the album.
  */
 export const addImageToAlbum = async (req, res) => {
     try {
@@ -205,11 +257,11 @@ export const addImageToAlbum = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid album id." });
         }
 
-        const { url, caption } = req.body;
-
-        if (!url?.trim()) {
-            return res.status(400).json({ success: false, message: "Image URL is required." });
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Image file is required." });
         }
+
+        const { caption } = req.body;
 
         const album = await Album.findById(id);
 
@@ -217,7 +269,9 @@ export const addImageToAlbum = async (req, res) => {
             return res.status(404).json({ success: false, message: "Album not found." });
         }
 
-        album.images.push({ url, caption });
+        const { url, publicId } = await uploadToCloudinary(req.file.buffer, `albums/${id}`, "image");
+
+        album.images.push({ url, publicId, caption: caption?.trim() || "" });
         await album.save();
 
         return res.status(200).json({
@@ -254,14 +308,25 @@ export const deleteImageFromAlbum = async (req, res) => {
             return res.status(404).json({ success: false, message: "Album not found." });
         }
 
-        const initialImageCount = album.images.length;
-        album.images = album.images.filter((image) => image._id.toString() !== imageId);
+        const imageToDelete = album.images.find((image) => image._id.toString() === imageId);
 
-        if (album.images.length === initialImageCount) {
+        if (!imageToDelete) {
             return res.status(404).json({ success: false, message: "Image not found in album." });
         }
 
+        album.images = album.images.filter((image) => image._id.toString() !== imageId);
         await album.save();
+
+        try {
+            await deleteFromCloudinary(imageToDelete.publicId, "image");
+        } catch (cloudinaryError) {
+            console.error("[Album Controller] Failed to delete photo from Cloudinary:", {
+                albumId: album._id,
+                imageId,
+                publicId: imageToDelete.publicId,
+                error: cloudinaryError.message
+            });
+        }
 
         return res.status(200).json({
             success: true,

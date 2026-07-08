@@ -20,7 +20,7 @@ const requireRole = (...allowedRoles) => {
             // Defensive check.
             // Prevents runtime errors if this middleware is accidentally
             // used before the authentication middleware.
-            return res.status(401).json({ message: "Not authorized, no user found on request" });
+            return res.status(401).json({ "success":false, message: "Not authorized, no user found on request" });
         }
         // Allow access only if the authenticated user's role
         // exists in the list of permitted roles.
@@ -30,6 +30,7 @@ const requireRole = (...allowedRoles) => {
         // Future roles can be added without changing this middleware.
         if (!allowedRoles.includes(req.user.role)) {
             return res.status(403).json({
+                "success":false,
                 message: "You do not have permission to perform this action"
             });
         }

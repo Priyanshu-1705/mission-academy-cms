@@ -1,5 +1,6 @@
 import Leader from "../models/Leader.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
 
 /**
  * Leader Controller
@@ -31,7 +32,7 @@ import { isValidObjectId } from "../utils/isValidObjectId.util.js";
  */
 export const getLeaders = async (req, res) => {
     try {
-        const leaders = await Leader.find().sort({ order: 1 });
+        const leaders = await Leader.find().sort({ order: 1, createdAt: 1 });
         return res.status(200).json({
             success: true,
             message: "Leaders retrieved successfully.",
@@ -53,7 +54,7 @@ export const getLeaders = async (req, res) => {
  */
 export const getPublicLeaders = async (req, res) => {
     try {
-        const leaders = await Leader.find().sort({ order: 1 });
+        const leaders = await Leader.find().sort({ order: 1, createdAt: 1 });
         return res.status(200).json({
             success: true,
             message: "Leaders retrieved successfully.",
@@ -69,35 +70,38 @@ export const getPublicLeaders = async (req, res) => {
 
 /**
  * POST /api/leaders
- *
- * Creates a new leader, appended at the end of the current order.
+ * Now expects a real image file (multipart/form-data) instead of a
+ * JSON photoUrl string.
  */
 export const createLeader = async (req, res) => {
     try {
-        const { name, photoUrl, designation, message } = req.body;
+        const { name, designation, message } = req.body;
 
-        if (
-            !name?.trim() ||
-            !photoUrl?.trim() ||
-            !designation?.trim() ||
-            !message?.trim()
-        ) {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Leader photo is required."
+            });
+        }
+
+        if (!name?.trim() || !designation?.trim() || !message?.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required."
             });
         }
 
-        // Find the current highest order value so the new leader is
-        // appended at the end, not accidentally placed first.
+        const { url, publicId } = await uploadToCloudinary(req.file.buffer, "leaders", "image");
+
         const lastLeader = await Leader.findOne().sort({ order: -1 });
         const nextOrder = lastLeader ? lastLeader.order + 1 : 0;
 
         const leader = await Leader.create({
             name,
-            photoUrl,
             designation,
             message,
+            photoUrl: url,
+            cloudinaryPublicId: publicId,
             order: nextOrder
         });
 
@@ -120,6 +124,8 @@ export const createLeader = async (req, res) => {
  * Updates an existing leader's details. Order is intentionally NOT
  * editable here — reordering has its own dedicated endpoint, since
  * it affects two leaders at once.
+ * A new photo is optional — if provided, the old Cloudinary image is
+ * replaced; if not, only the text fields change.
  */
 export const updateLeader = async (req, res) => {
     try {
@@ -132,8 +138,7 @@ export const updateLeader = async (req, res) => {
             });
         }
 
-        const { name, photoUrl, designation, message } = req.body;
-
+        const { name, designation, message } = req.body;
         const leader = await Leader.findById(id);
 
         if (!leader) {
@@ -143,10 +148,28 @@ export const updateLeader = async (req, res) => {
             });
         }
 
-        if (name !== undefined) leader.name = name;
-        if (photoUrl !== undefined) leader.photoUrl = photoUrl;
-        if (designation !== undefined) leader.designation = designation;
-        if (message !== undefined) leader.message = message;
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "leaders", "image");
+            // The new image is already live in Cloudinary at this point.
+            // Deleting the OLD one is best-effort cleanup — if it fails,
+            // the update itself has still genuinely succeeded, so this
+            // must not throw and turn a successful update into a 500.
+            try {
+                await deleteFromCloudinary(leader.cloudinaryPublicId, "image");
+            } catch (cloudinaryError) {
+                console.error("[Leader Controller] Failed to delete previous leader image:", {
+                    leaderId: leader._id,
+                    publicId: leader.cloudinaryPublicId,
+                    error: cloudinaryError.message
+                });
+            }
+            leader.photoUrl = url;
+            leader.cloudinaryPublicId = publicId;
+        }
+
+        if (name !== undefined) leader.name = name.trim();
+        if (designation !== undefined) leader.designation = designation.trim();
+        if (message !== undefined) leader.message = message.trim();
 
         await leader.save();
 
@@ -170,33 +193,31 @@ export const updateLeader = async (req, res) => {
  * leaders' order values — gaps in the sequence are harmless since
  * sorting only cares about relative order, not consecutive numbering.
  */
-// Currently only the MongoDB record is deleted.
-// Profile photo removal from Cloudinary will be
-// implemented after Cloudinary integration.
 export const deleteLeader = async (req, res) => {
     try {
         const { id } = req.params;
 
         if (!isValidObjectId(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid leader id."
-            });
+            return res.status(400).json({ success: false, message: "Invalid leader id." });
         }
 
         const leader = await Leader.findByIdAndDelete(id);
 
         if (!leader) {
-            return res.status(404).json({
-                success: false,
-                message: "Leader not found."
-            });
+            return res.status(404).json({ success: false, message: "Leader not found." });
         }
 
-        return res.status(200).json({
-            success: true,
-            message: "Leader deleted successfully."
-        });
+        try {
+            await deleteFromCloudinary(leader.cloudinaryPublicId, "image");
+        } catch (cloudinaryError) {
+            console.error(
+                "[Leader Controller] Cloudinary cleanup failed for deleted leader:",
+                leader._id.toString(),
+                cloudinaryError.message
+            );
+        }
+
+        return res.status(200).json({ success: true, message: "Leader deleted successfully." });
     } catch (error) {
         return res.status(500).json({
             success: false,

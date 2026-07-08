@@ -32,7 +32,7 @@ const protect = async (req, res, next) => {
     }
 
     if (!token) {
-        return res.status(401).json({ message: "Not authorized, no token provided" });
+        return res.status(401).json({ "success":false, message: "Not authorized, no token provided" });
     }
 
     try {
@@ -46,11 +46,11 @@ const protect = async (req, res, next) => {
         const user = await User.findById(decoded.id);
 
         if (!user) {
-            return res.status(401).json({ message: "Not authorized, user no longer exists" });
+            return res.status(401).json({ "success":false, message: "Not authorized, user no longer exists" });
         }
 
         if (!user.isActive) {
-            return res.status(403).json({ message: "This account has been disabled" });
+            return res.status(403).json({ "success":false, message: "This account has been disabled" });
         }
 
         // Store the authenticated user on the request object.
@@ -59,7 +59,7 @@ const protect = async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Not authorized, invalid or expired token" });
+        return res.status(401).json({ "success":false, message: "Not authorized, invalid or expired token" });
     }
 };
 

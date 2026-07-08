@@ -1,6 +1,8 @@
 import express from "express";
 import protect from "../middleware/auth.middleware.js";
 import requireRole from "../middleware/requireRole.middleware.js";
+import { uploadPdf } from "../middleware/upload.middleware.js";
+import { handleUploadError } from "../middleware/handleUploadError.middleware.js";
 import {
     getDisclosures,
     createDisclosure,
@@ -29,8 +31,20 @@ import {
 const router = express.Router();
 
 router.get("/", protect, requireRole("super_admin"), getDisclosures);
-router.post("/", protect, requireRole("super_admin"), createDisclosure);
-router.patch("/:id", protect, requireRole("super_admin"), updateDisclosure);
+router.post("/",
+    protect,
+    requireRole("super_admin"),
+    uploadPdf.single("document"),
+    handleUploadError,
+    createDisclosure
+);
+router.patch("/:id",
+    protect,
+    requireRole("super_admin"),
+    uploadPdf.single("document"),
+    handleUploadError,
+    updateDisclosure
+);
 router.delete("/:id", protect, requireRole("super_admin"), deleteDisclosure);
 
 export default router;

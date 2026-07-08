@@ -57,6 +57,5 @@ const otherAchievementSchema = new mongoose.Schema({
 
 otherAchievementSchema.index({ showOnHomepage: 1 });
 
-const OtherAchiever = mongoose.model("OtherAchiever", otherAchievementSchema);
-
-export default OtherAchiever;
+const OtherAchievement = mongoose.model("OtherAchievement", otherAchievementSchema);
+export default OtherAchievement;

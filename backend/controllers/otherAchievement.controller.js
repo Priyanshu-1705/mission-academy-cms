@@ -1,5 +1,6 @@
 import OtherAchievement from "../models/OtherAchievement.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
 
 /**
  * Other Achievement Controller
@@ -71,7 +72,7 @@ const fetchOtherAchievements = async (query, publicOnly = false) => {
 
     const filter = buildOtherAchievementFilter(query);
 
-    if(publicOnly){
+    if (publicOnly) {
         filter.showOnHomepage = true;
     }
 
@@ -93,9 +94,7 @@ const validateOtherAchievement = ({
     title,
     description,
     category,
-    date,
-    imageUrl,
-    cloudinaryPublicId
+    date
 }) => {
 
     if (!title?.trim()) {
@@ -111,15 +110,6 @@ const validateOtherAchievement = ({
     if (date && isNaN(new Date(date).getTime())) {
         return "Invalid date.";
     }
-
-    if (!imageUrl?.trim()) {
-        return "Image URL is required.";
-    }
-
-    if (!cloudinaryPublicId?.trim()) {
-        return "Cloudinary Public ID is required.";
-    }
-
     return null;
 };
 
@@ -189,8 +179,24 @@ export const getPublicOtherAchievements = async (req, res) => {
  */
 export const createOtherAchievement = async (req, res) => {
     try {
+        const {
+            title,
+            description,
+            category,
+            date
+        } = req.body;
 
-        const validationError = validateOtherAchievement(req.body);
+        const showOnHomepage =
+            req.body.showOnHomepage === undefined
+                ? false
+                : req.body.showOnHomepage === "true";
+
+        const validationError = validateOtherAchievement({
+            title,
+            description,
+            category,
+            date
+        });
 
         if (validationError) {
             return res.status(400).json({
@@ -199,20 +205,19 @@ export const createOtherAchievement = async (req, res) => {
             });
         }
 
-        const {
-            title,
-            description,
-            category,
-            date,
-            imageUrl,
-            cloudinaryPublicId,
-            showOnHomepage
-        } = req.body;
+        let imageUrl;
+        let cloudinaryPublicId;
+
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "other-achievements", "image");
+            imageUrl = url;
+            cloudinaryPublicId = publicId;
+        }
 
         const achievement = await OtherAchievement.create({
-            title,
-            description,
-            category,
+            title: title.trim(),
+            description: description.trim(),
+            category: category?.trim(),
             date,
             imageUrl,
             cloudinaryPublicId,
@@ -264,14 +269,31 @@ export const updateOtherAchievement = async (req, res) => {
             });
         }
 
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "other-achievements", "image");
+
+            if (achievement.cloudinaryPublicId) {
+                try {
+                    await deleteFromCloudinary(achievement.cloudinaryPublicId, "image");
+                } catch (cloudinaryError) {
+                    console.error("[Other Achievement Controller] Failed to delete previous image:", {
+                        achievementId: achievement._id,
+                        publicId: achievement.cloudinaryPublicId,
+                        error: cloudinaryError.message
+                    });
+                }
+            }
+
+            achievement.imageUrl = url;
+            achievement.cloudinaryPublicId = publicId;
+        }
+
+
         const {
             title,
             description,
             category,
             date,
-            imageUrl,
-            cloudinaryPublicId,
-            showOnHomepage
         } = req.body;
 
         /**
@@ -279,31 +301,24 @@ export const updateOtherAchievement = async (req, res) => {
          */
 
         if (title !== undefined) {
-            achievement.title = title;
+            achievement.title = title.trim();
         }
 
         if (description !== undefined) {
-            achievement.description = description;
+            achievement.description = description.trim();
         }
 
         if (category !== undefined) {
-            achievement.category = category;
+            achievement.category = category.trim();
         }
 
         if (date !== undefined) {
             achievement.date = date;
         }
 
-        if (imageUrl !== undefined) {
-            achievement.imageUrl = imageUrl;
-        }
-
-        if (cloudinaryPublicId !== undefined) {
-            achievement.cloudinaryPublicId = cloudinaryPublicId;
-        }
-
-        if (showOnHomepage !== undefined) {
-            achievement.showOnHomepage = showOnHomepage;
+        if (req.body.showOnHomepage !== undefined) {
+            achievement.showOnHomepage =
+                req.body.showOnHomepage === "true";
         }
 
         /**
@@ -344,9 +359,6 @@ export const updateOtherAchievement = async (req, res) => {
  * Admin-facing.
  *
  * Validates the achievement ID before attempting deletion.
- * Currently only removes the MongoDB record. Cloudinary image
- * deletion will be added once Cloudinary integration is
- * implemented across the project.
  */
 export const deleteOtherAchievement = async (req, res) => {
     try {
@@ -369,12 +381,17 @@ export const deleteOtherAchievement = async (req, res) => {
             });
         }
 
-        /**
-         * TODO:
-         * Delete the image from Cloudinary using
-         * achievement.cloudinaryPublicId once the
-         * Cloudinary service is integrated.
-         */
+        if (achievement.cloudinaryPublicId) {
+            try {
+                await deleteFromCloudinary(achievement.cloudinaryPublicId, "image");
+            } catch (cloudinaryError) {
+                console.error("[Other Achievement Controller] Failed to delete image on delete:", {
+                    achievementId: achievement._id,
+                    publicId: achievement.cloudinaryPublicId,
+                    error: cloudinaryError.message
+                });
+            }
+        }
 
         return res.status(200).json({
             success: true,

@@ -41,6 +41,10 @@ const albumSchema = new mongoose.Schema(
             type: String,
             trim: true
         },
+        coverImagePublicId: {
+            type: String,
+            trim: true
+        },
         date: {
             type: Date,
             required: true
@@ -52,6 +56,10 @@ const albumSchema = new mongoose.Schema(
             type: [
                 {
                     url: {
+                        type: String,
+                        required: true
+                    },
+                    publicId: {
                         type: String,
                         required: true
                     },

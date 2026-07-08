@@ -1,5 +1,7 @@
 import express from "express";
 import protect from "../middleware/auth.middleware.js";
+import uploadImage from "../middleware/upload.middleware.js";
+import handleUploadError from "../middleware/handleUploadError.middleware.js";
 import {
     getOtherAchievements,
     createOtherAchievement,
@@ -26,8 +28,16 @@ const router = express.Router();
 
 // Admin routes — require a valid logged-in session.
 router.get("/", protect, getOtherAchievements);
-router.post("/", protect, createOtherAchievement);
-router.patch("/:id", protect, updateOtherAchievement);
+router.post("/", protect,
+    uploadImage.single("image"),
+    handleUploadError,
+    createOtherAchievement
+);
+router.patch("/:id", protect,
+    uploadImage.single("image"),
+    handleUploadError,
+    updateOtherAchievement
+);
 router.delete("/:id", protect, deleteOtherAchievement);
 router.patch("/:id/toggle-homepage", protect, toggleOtherAchievementHomepage);
 

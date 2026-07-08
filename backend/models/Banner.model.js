@@ -25,6 +25,11 @@ const bannerSchema = new mongoose.Schema(
             trim: true
         },
 
+        cloudinaryPublicId: {
+            type: String,
+            required: true
+        },
+
         // Determines whether the banner is visible
         // on the public homepage.
         active: {

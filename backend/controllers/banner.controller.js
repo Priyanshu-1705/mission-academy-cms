@@ -1,5 +1,6 @@
 import Banner from "../models/Banner.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
 
 /**
  * Banner Controller
@@ -18,10 +19,6 @@ import { isValidObjectId } from "../utils/isValidObjectId.util.js";
  * Notes:
  * Both Super Admin and Principal can manage banners — no role
  * restriction is applied at the route level for this module.
- * Deleting a banner currently removes only the MongoDB record.
- * Cloudinary image cleanup (deleting the actual file from storage)
- * will be added once Cloudinary upload integration is implemented —
- * until then, deleted banners' images remain in Cloudinary storage.
  */
 
 /**
@@ -72,25 +69,28 @@ export const getPublicBanners = async (req, res) => {
 
 /**
  * POST /api/banners
- *
- * Creates a new banner, appended at the end of the current order.
+ * Now expects a real image file (multipart/form-data) instead of a
+ * JSON imageUrl string. The file is uploaded to Cloudinary first,
+ * and its returned URL + publicId are what actually get saved.
  */
 export const createBanner = async (req, res) => {
     try {
-        const { imageUrl, active } = req.body;
-
-        if (!imageUrl) {
-            return res.status(400).json({
-                success: false,
-                message: "imageUrl is required."
-            });
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "Banner image is required." });
         }
+        const active =
+            req.body.active === undefined
+                ? true
+                : req.body.active === "true";
+
+        const { url, publicId } = await uploadToCloudinary(req.file.buffer, "banners");
 
         const lastBanner = await Banner.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 0;
 
         const banner = await Banner.create({
-            imageUrl,
+            imageUrl: url,
+            cloudinaryPublicId: publicId,
             active: active !== undefined ? active : true,
             order: nextOrder
         });
@@ -110,9 +110,9 @@ export const createBanner = async (req, res) => {
 
 /**
  * PATCH /api/banners/:id
- *
- * Updates an existing banner's image and/or active status.
- * Order is intentionally NOT editable here — see reorderBanner.
+ * A new file is optional on update — if provided, the old Cloudinary
+ * image is deleted and replaced; if not provided, only active/order
+ * related fields change and the existing image stays untouched.
  */
 export const updateBanner = async (req, res) => {
     try {
@@ -125,8 +125,7 @@ export const updateBanner = async (req, res) => {
             });
         }
 
-        const { imageUrl, active } = req.body;
-
+        const { active } = req.body;
         const banner = await Banner.findById(id);
 
         if (!banner) {
@@ -136,7 +135,17 @@ export const updateBanner = async (req, res) => {
             });
         }
 
-        if (imageUrl !== undefined) banner.imageUrl = imageUrl;
+        if (req.file) {
+            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "banners", "image");
+
+            // Delete the old image from Cloudinary only after the new one
+            // uploads successfully — avoids losing both if the new upload fails.
+            await deleteFromCloudinary(banner.cloudinaryPublicId, "image");
+
+            banner.imageUrl = url;
+            banner.cloudinaryPublicId = publicId;
+        }
+
         if (active !== undefined) banner.active = active;
 
         await banner.save();
@@ -156,9 +165,8 @@ export const updateBanner = async (req, res) => {
 
 /**
  * DELETE /api/banners/:id
- *
- * Deletes a banner permanently. Only removes the MongoDB record —
- * see file header note regarding deferred Cloudinary cleanup.
+ * Now actually deletes the Cloudinary file too, closing the gap
+ * that was previously just a comment.
  */
 export const deleteBanner = async (req, res) => {
     try {
@@ -178,6 +186,21 @@ export const deleteBanner = async (req, res) => {
                 success: false,
                 message: "Banner not found."
             });
+        }
+
+        // Cloudinary cleanup is best-effort — if it fails, the banner is
+        // still genuinely deleted from the database, so the response must
+        // still report success. A failed cleanup just leaves an orphaned
+        // file in Cloudinary storage, which is a minor, recoverable issue,
+        // not a reason to tell the admin their delete failed.
+        try {
+            await deleteFromCloudinary(banner.cloudinaryPublicId, "image");
+        } catch (cloudinaryError) {
+            console.error(
+                "[Banner Controller] Cloudinary cleanup failed for deleted banner:",
+                banner._id.toString(),
+                cloudinaryError.message
+            );
         }
 
         return res.status(200).json({

@@ -8,6 +8,8 @@ import {
     deleteLeader,
     reorderLeader
 } from "../controllers/leader.controller.js";
+import { uploadImage } from "../middleware/upload.middleware.js";
+import { handleUploadError } from "../middleware/handleUploadError.middleware.js";
 
 /**
  * Leader Routes
@@ -29,8 +31,20 @@ import {
 const router = express.Router();
 
 router.get("/", protect, requireRole("super_admin"), getLeaders);
-router.post("/", protect, requireRole("super_admin"), createLeader);
-router.patch("/:id", protect, requireRole("super_admin"), updateLeader);
+router.post("/",
+    protect,
+    requireRole("super_admin"),
+    uploadImage.single("photo"),
+    handleUploadError,
+    createLeader
+);
+router.patch("/:id",
+    protect,
+    requireRole("super_admin"),
+    uploadImage.single("photo"),
+    handleUploadError,
+    updateLeader
+);
 router.delete("/:id", protect, requireRole("super_admin"), deleteLeader);
 router.patch("/:id/reorder", protect, requireRole("super_admin"), reorderLeader);
 

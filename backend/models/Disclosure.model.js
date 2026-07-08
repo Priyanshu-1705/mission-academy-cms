@@ -59,11 +59,6 @@ const disclosureSchema = new mongoose.Schema({
     timestamps: true
 })
 
-Disclosure.find()
-.sort({
-    category:1,
-    displayOrder:1
-})
 
 const Disclosure = mongoose.model("Disclosure", disclosureSchema);
 
