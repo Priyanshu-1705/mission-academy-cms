@@ -49,8 +49,6 @@ const tcSchema = new mongoose.Schema(
   }
 );
 
-tcSchema.index({ admissionNumber: 1 });
-
 const TransferCertificate = mongoose.model("TransferCertificate", tcSchema);
 
 export default TransferCertificate;

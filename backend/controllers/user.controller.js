@@ -32,7 +32,7 @@ export const getUsers = async (req, res) => {
     try {
         const users = await User
             .find()
-            .select("-password")
+            .select("-password -__v -createdAt -updatedAt")
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
@@ -166,7 +166,7 @@ export const toggleUserStatus = async (req, res) => {
         }
 
         if (user.role === "super_admin") {
-            return res.status(400).json({
+            return res.status(403).json({
                 success: false,
                 message: "Super Admin cannot be disabled."
             });

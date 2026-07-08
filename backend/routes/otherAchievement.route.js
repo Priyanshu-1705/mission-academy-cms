@@ -1,7 +1,7 @@
 import express from "express";
 import protect from "../middleware/auth.middleware.js";
-import uploadImage from "../middleware/upload.middleware.js";
-import handleUploadError from "../middleware/handleUploadError.middleware.js";
+import { uploadImage } from "../middleware/upload.middleware.js";
+import { handleUploadError } from "../middleware/handleUploadError.middleware.js";
 import {
     getOtherAchievements,
     createOtherAchievement,

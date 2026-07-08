@@ -1,4 +1,4 @@
-import Setting from "../models/Setting.model.js";
+import Settings from "../models/Settings.model.js";
 
 
 /**
@@ -25,22 +25,13 @@ import Setting from "../models/Setting.model.js";
 const validateSettings = (data) => {
     const errors = {};
 
-    if (
-        !Array.isArray(data.phone) ||
-        data.phone.length === 0
-    ) {
-        errors.phone = "At least one phone number is required.";
+    if (!data.phone?.trim()) {
+        errors.phone = "Phone number is required.";
     } else {
         const phoneRegex = /^[+]?[\d\s\-()]{8,20}$/;
 
-        const invalidPhone = data.phone.find(
-            (phone) =>
-                !phone?.trim() ||
-                !phoneRegex.test(phone.trim())
-        );
-
-        if (invalidPhone) {
-            errors.phone = "One or more phone numbers are invalid.";
+        if (!phoneRegex.test(data.phone.trim())) {
+            errors.phone = "Invalid phone number.";
         }
     }
 
@@ -85,7 +76,7 @@ const validateSettings = (data) => {
 export const getSettings = async (req, res) => {
     try {
 
-        const settings = await Setting.findOne();
+        const settings = await Settings.findOne();
 
         return res.status(200).json({
             success: true,
@@ -113,7 +104,7 @@ export const getSettings = async (req, res) => {
 export const getPublicSettings = async (req, res) => {
     try {
 
-        const settings = await Setting.findOne().select(
+        const settings = await Settings.findOne().select(
             "phone email instagramUrl facebookUrl youtubeUrl showCtaBanner"
         );
 
@@ -139,11 +130,22 @@ export const getPublicSettings = async (req, res) => {
  *
  * Updates the singleton settings document.
  * Creates it if it does not already exist.
+ * Supports partial updates.
  */
 export const updateSettings = async (req, res) => {
     try {
 
-        const validationErrors = validateSettings(req.body);
+        // Get existing settings (if any)
+        const existingSettings = await Settings.findOne();
+
+        // Merge existing data with incoming request body
+        const mergedSettings = {
+            ...(existingSettings?.toObject() || {}),
+            ...req.body
+        };
+
+        // Validate the merged document
+        const validationErrors = validateSettings(mergedSettings);
 
         if (Object.keys(validationErrors).length > 0) {
             return res.status(400).json({
@@ -153,24 +155,16 @@ export const updateSettings = async (req, res) => {
             });
         }
 
-        const {
-            phone,
-            email,
-            instagramUrl,
-            facebookUrl,
-            youtubeUrl,
-            showCtaBanner
-        } = req.body;
-
-        const settings = await Setting.findOneAndUpdate(
+        // Update or create the singleton settings document
+        const settings = await Settings.findOneAndUpdate(
             {},
             {
-                phone,
-                email: email.toLowerCase(),
-                instagramUrl,
-                facebookUrl,
-                youtubeUrl,
-                showCtaBanner
+                phone: mergedSettings.phone.trim(),
+                email: mergedSettings.email.trim().toLowerCase(),
+                instagramUrl: mergedSettings.instagramUrl?.trim(),
+                facebookUrl: mergedSettings.facebookUrl?.trim(),
+                youtubeUrl: mergedSettings.youtubeUrl?.trim(),
+                showCtaBanner: mergedSettings.showCtaBanner
             },
             {
                 new: true,
@@ -186,6 +180,8 @@ export const updateSettings = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("[Settings Controller] Update Settings:", error.message);
+
         return res.status(500).json({
             success: false,
             message: "Internal server error."
