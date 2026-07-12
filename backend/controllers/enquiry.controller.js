@@ -179,13 +179,10 @@ export const updateEnquiryStatus = async (req, res) => {
         const { status } = req.body;
 
         if (!isValidObjectId(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid enquiry ID."
-            });
+            return res.status(400).json({ success: false, message: "Invalid enquiry ID." });
         }
 
-        if (!status || !["pending", "resolved"].includes(status)) {
+        if (!status || !VALID_STATUS.includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid status provided. Must be 'pending' or 'resolved'."
@@ -195,22 +192,10 @@ export const updateEnquiryStatus = async (req, res) => {
         const enquiry = await Enquiry.findById(id);
 
         if (!enquiry) {
-            return res.status(404).json({
-                success: false,
-                message: "Enquiry not found."
-            });
+            return res.status(404).json({ success: false, message: "Enquiry not found." });
         }
 
         enquiry.status = status;
-
-        if (enquiry.status === status) {
-            return res.status(200).json({
-                success: true,
-                message: "Enquiry already has this status.",
-                data: enquiry
-            });
-        }
-
         await enquiry.save();
 
         return res.status(200).json({
@@ -219,14 +204,8 @@ export const updateEnquiryStatus = async (req, res) => {
             data: enquiry
         });
     } catch (error) {
-        console.error(
-            "[Enquiry Controller] Update Enquiry Status:",
-            error.message
-        );
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error."
-        });
+        console.error("[Enquiry Controller] Update Enquiry Status:", error.message);
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 

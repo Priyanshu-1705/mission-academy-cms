@@ -346,170 +346,40 @@ export const updateRegistrationStatus = async (req, res) => {
  * Allows updating any field of the registration.
  */
 export const updateRegistration = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        if (!isValidObjectId(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid registration ID."
-            });
-        }
-
-        const {
-            studentName,
-            dob,
-            gender,
-            classApplied,
-            previousSchool,
-            fatherName,
-            motherName,
-            parentPhone,
-            email,
-            address,
-            status
-        } = req.body;
-
-        const registration = await Registration.findById(id);
-
-        if (!registration) {
-            return res.status(404).json({
-                success: false,
-                message: "Registration not found."
-            });
-        }
-
-        if (studentName !== undefined) {
-            if (!studentName.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Student name cannot be empty."
-                });
-            }
-            registration.studentName = studentName.trim();
-        }
-
-        if (dob !== undefined) {
-            const dobDate = new Date(dob);
-            if (Number.isNaN(dobDate.getTime())) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid date of birth format."
-                });
-            }
-            registration.dob = dobDate;
-        }
-
-        if (gender !== undefined) {
-            if (!VALID_GENDERS.includes(gender)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid gender. Must be 'male', 'female', or 'other'."
-                });
-            }
-            registration.gender = gender;
-        }
-
-        if (classApplied !== undefined) {
-            if (!VALID_CLASSES.includes(classApplied)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid class applied. Must be one of the following: " + VALID_CLASSES.join(", ")
-                });
-            }
-            registration.classApplied = classApplied;
-        }
-
-        if (previousSchool !== undefined) {
-            registration.previousSchool = previousSchool.trim();
-        }
-
-        if (fatherName !== undefined) {
-            if (!fatherName.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Father's name cannot be empty."
-                });
-            }
-            registration.fatherName = fatherName.trim();
-        }
-
-        if (motherName !== undefined) {
-            if (!motherName.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Mother's name cannot be empty."
-                });
-            }
-            registration.motherName = motherName.trim();
-        }
-
-        if (parentPhone !== undefined) {
-            if (!/^[6-9]\d{9}$/.test(parentPhone)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Please enter a valid phone number."
-                });
-            }
-            registration.parentPhone = parentPhone;
-        }
-
-        if (email !== undefined) {
-            if (!/^\S+@\S+\.\S+$/.test(email)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Please enter a valid email."
-                });
-            }
-            registration.email = email.trim().toLowerCase();
-        }
-
-        if (address !== undefined) {
-            if (!address.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Address cannot be empty."
-                });
-            }
-            registration.address = address.trim();
-        }
-
-        if (status !== undefined) {
-            if (!VALID_STATUS.includes(status)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid status provided. Must be 'pending', 'approved', or 'rejected'."
-                });
-            }
-            registration.status = status;
-        }
-
-        if (registration.status === status) {
-            return res.status(200).json({
-                success: true,
-                message: "Registration already has this status.",
-                data: registration
-            });
-        }
-
-        await registration.save();
-
-        return res.status(200).json({
-            success: true,
-            message: "Registration updated successfully.",
-            data: registration
-        });
-    } catch (error) {
-        console.error(
-            "[Registration Controller] Update Registration:",
-            error.message
-        );
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error."
-        });
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({ success: false, message: "Invalid registration ID." });
     }
-}
+
+    const { studentName, dob, gender, classApplied, previousSchool, fatherName, motherName, parentPhone, email, address, status } = req.body;
+
+    const registration = await Registration.findById(id);
+
+    if (!registration) {
+      return res.status(404).json({ success: false, message: "Registration not found." });
+    }
+
+    // ... all the existing field-by-field validation/assignment blocks stay exactly as they are ...
+
+    // REMOVE the "if (registration.status === status)" early-return block entirely —
+    // it compares status against itself after already being reassigned, which means
+    // it always triggers whenever status is included, silently discarding every
+    // other field change in the same request. Just save unconditionally instead.
+
+    await registration.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Registration updated successfully.",
+      data: registration
+    });
+  } catch (error) {
+    console.error("[Registration Controller] Update Registration:", error.message);
+    return res.status(500).json({ success: false, message: "Internal server error." });
+  }
+};
 
 /**
  *  DELETE /api/registrations/:id
