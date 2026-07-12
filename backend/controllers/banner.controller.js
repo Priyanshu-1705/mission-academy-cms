@@ -140,13 +140,23 @@ export const updateBanner = async (req, res) => {
 
             // Delete the old image from Cloudinary only after the new one
             // uploads successfully — avoids losing both if the new upload fails.
-            await deleteFromCloudinary(banner.cloudinaryPublicId, "image");
+            try {
+                await deleteFromCloudinary(banner.cloudinaryPublicId, "image");
+            } catch (cloudinaryError) {
+                console.error(
+                    "[Banner Controller] Failed to delete previous banner image:",
+                    banner._id.toString(),
+                    cloudinaryError.message
+                );
+            }
 
             banner.imageUrl = url;
             banner.cloudinaryPublicId = publicId;
         }
 
-        if (active !== undefined) banner.active = active;
+        if (active !== undefined) {
+            banner.active = active === "true";
+        }
 
         await banner.save();
 

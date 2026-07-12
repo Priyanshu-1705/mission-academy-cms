@@ -1,5 +1,8 @@
 import Enquiry from "../models/Enquiry.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+
+const VALID_STATUS = ["pending", "resolved"];
+
 /**
  * Enquiry Controller
  *
@@ -24,6 +27,13 @@ import { isValidObjectId } from "../utils/isValidObjectId.util.js";
  */
 const buildEnquiryFilter = (query) => {
     const filter = {};
+
+    if (
+        query.status &&
+        !VALID_STATUS.includes(query.status.trim())
+    ) {
+        throw new Error("Invalid enquiry status.");
+    }
 
     if (query.status?.trim()) {
         filter.status = query.status.trim();
@@ -57,6 +67,16 @@ export const getEnquiries = async (req, res) => {
             data: enquiries
         });
     } catch (error) {
+        console.error(
+            "[Enquiry Controller] Get Enquiries:",
+            error.message
+        );
+        if (error.message === "Invalid enquiry status.") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -64,6 +84,13 @@ export const getEnquiries = async (req, res) => {
     }
 };
 
+/**
+ * Validates enquiry data.
+ *
+ * Returns:
+ * - null if valid
+ * - error message if invalid
+ */
 const validateEnquiry = (data) => {
     const errors = {};
 
@@ -104,6 +131,7 @@ const validateEnquiry = (data) => {
  */
 export const createEnquiry = async (req, res) => {
     try {
+        const { name, phone, email, message } = req.body;
         const validationErrors = validateEnquiry(req.body);
 
         if (Object.keys(validationErrors).length > 0) {
@@ -115,11 +143,11 @@ export const createEnquiry = async (req, res) => {
         }
 
         const enquiry = await Enquiry.create({
-            name,
-            phone,
-            email,
-            message,
-            status: "pending" // Default status
+            name: name.trim(),
+            phone: phone.trim(),
+            email: email.trim().toLowerCase(),
+            message: message.trim(),
+            status: "pending"
         });
 
         return res.status(201).json({
@@ -128,6 +156,10 @@ export const createEnquiry = async (req, res) => {
             data: enquiry
         });
     } catch (error) {
+        console.error(
+            "[Enquiry Controller] Create Enquiry:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -170,6 +202,15 @@ export const updateEnquiryStatus = async (req, res) => {
         }
 
         enquiry.status = status;
+
+        if (enquiry.status === status) {
+            return res.status(200).json({
+                success: true,
+                message: "Enquiry already has this status.",
+                data: enquiry
+            });
+        }
+
         await enquiry.save();
 
         return res.status(200).json({
@@ -178,6 +219,10 @@ export const updateEnquiryStatus = async (req, res) => {
             data: enquiry
         });
     } catch (error) {
+        console.error(
+            "[Enquiry Controller] Update Enquiry Status:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -216,6 +261,10 @@ export const deleteEnquiry = async (req, res) => {
             message: "Enquiry deleted successfully."
         });
     } catch (error) {
+        console.error(
+            "[Enquiry Controller] Delete Enquiry:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."

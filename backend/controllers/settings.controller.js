@@ -167,7 +167,7 @@ export const updateSettings = async (req, res) => {
                 showCtaBanner: mergedSettings.showCtaBanner
             },
             {
-                new: true,
+                returnDocument: "after",
                 upsert: true,
                 runValidators: true
             }

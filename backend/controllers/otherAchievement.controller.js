@@ -135,6 +135,10 @@ export const getOtherAchievements = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Other Achievement Controller] Get Other Achievements:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -164,6 +168,10 @@ export const getPublicOtherAchievements = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Other Achievement Controller] Get Public Other Achievements:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -205,19 +213,26 @@ export const createOtherAchievement = async (req, res) => {
             });
         }
 
-        let imageUrl;
-        let cloudinaryPublicId;
-
-        if (req.file) {
-            const { url, publicId } = await uploadToCloudinary(req.file.buffer, "other-achievements", "image");
-            imageUrl = url;
-            cloudinaryPublicId = publicId;
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "Achievement image is required."
+            });
         }
+
+        const { url, publicId } = await uploadToCloudinary(
+            req.file.buffer,
+            "other-achievements",
+            "image"
+        );
+
+        const imageUrl = url;
+        const cloudinaryPublicId = publicId;
 
         const achievement = await OtherAchievement.create({
             title: title.trim(),
             description: description.trim(),
-            category: category?.trim(),
+            category: category?.trim() || "Other",
             date,
             imageUrl,
             cloudinaryPublicId,
@@ -231,6 +246,10 @@ export const createOtherAchievement = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Other Achievement Controller] Create Other Achievement:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -276,11 +295,11 @@ export const updateOtherAchievement = async (req, res) => {
                 try {
                     await deleteFromCloudinary(achievement.cloudinaryPublicId, "image");
                 } catch (cloudinaryError) {
-                    console.error("[Other Achievement Controller] Failed to delete previous image:", {
-                        achievementId: achievement._id,
-                        publicId: achievement.cloudinaryPublicId,
-                        error: cloudinaryError.message
-                    });
+                    console.error(
+                        "[Other Achievement Controller] Failed to delete previous image:",
+                        achievement._id.toString(),
+                        cloudinaryError.message
+                    );
                 }
             }
 
@@ -309,7 +328,7 @@ export const updateOtherAchievement = async (req, res) => {
         }
 
         if (category !== undefined) {
-            achievement.category = category.trim();
+            achievement.category = category.trim() || "Other";
         }
 
         if (date !== undefined) {
@@ -343,6 +362,10 @@ export const updateOtherAchievement = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Other Achievement Controller] Update Other Achievement:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -385,11 +408,11 @@ export const deleteOtherAchievement = async (req, res) => {
             try {
                 await deleteFromCloudinary(achievement.cloudinaryPublicId, "image");
             } catch (cloudinaryError) {
-                console.error("[Other Achievement Controller] Failed to delete image on delete:", {
-                    achievementId: achievement._id,
-                    publicId: achievement.cloudinaryPublicId,
-                    error: cloudinaryError.message
-                });
+                console.error(
+                    "[Other Achievement Controller] Failed to delete previous image:",
+                    achievement._id.toString(),
+                    cloudinaryError.message
+                );
             }
         }
 
@@ -399,6 +422,10 @@ export const deleteOtherAchievement = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Other Achievement Controller] Delete Other Achievement:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -442,6 +469,10 @@ export const toggleOtherAchievementHomepage = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Other Achievement Controller] Toggle Other Achievement Homepage:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."

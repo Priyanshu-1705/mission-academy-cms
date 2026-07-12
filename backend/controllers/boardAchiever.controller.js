@@ -180,6 +180,10 @@ export const getBoardAchievers = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Board Achiever Controller] Get Board Achievers:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -210,6 +214,10 @@ export const getPublicBoardAchievers = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Board Achiever Controller] Get Public Board Achievers:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -297,6 +305,10 @@ export const createBoardAchiever = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Board Achiever Controller] Create Board Achiever:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -373,11 +385,11 @@ export const updateBoardAchiever = async (req, res) => {
         }
 
         if (percentage !== undefined) {
-            achiever.percentage = percentage;
+            achiever.percentage = Number(percentage);
         }
 
         if (rank !== undefined) {
-            achiever.rank = rank;
+            achiever.rank = Number(rank);
         }
 
         if (year !== undefined) {
@@ -426,6 +438,10 @@ export const updateBoardAchiever = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Board Achiever Controller] Update Board Achiever:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -483,6 +499,10 @@ export const deleteBoardAchiever = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Board Achiever Controller] Delete Board Achiever:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."

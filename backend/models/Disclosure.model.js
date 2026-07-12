@@ -59,6 +59,10 @@ const disclosureSchema = new mongoose.Schema({
     timestamps: true
 })
 
+disclosureSchema.index({
+    category: 1,
+    displayOrder: 1
+});
 
 const Disclosure = mongoose.model("Disclosure", disclosureSchema);
 

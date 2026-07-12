@@ -1,5 +1,7 @@
 import express from "express";
 import protect from "../middleware/auth.middleware.js";
+import { uploadPdf } from "../middleware/upload.middleware.js";
+import { handleUploadError } from "../middleware/handleUploadError.middleware.js";
 import { certificateLookupLimiter } from "../middleware/certificateLookupLimiter.middleware.js";
 import {
   getCertificates,
@@ -32,8 +34,18 @@ router.get("/lookup/:admissionNumber", certificateLookupLimiter, lookupCertifica
 
 // Admin routes — require a valid logged-in session.
 router.get("/", protect, getCertificates);
-router.post("/", protect, createCertificate);
-router.patch("/:id", protect, updateCertificate);
+router.post("/",
+  protect,
+  uploadPdf.single("certificate"),
+  handleUploadError,
+  createCertificate
+);
+router.patch("/:id",
+  protect,
+  uploadPdf.single("certificate"),
+  handleUploadError,
+  updateCertificate
+);
 router.delete("/:id", protect, deleteCertificate);
 
 export default router;

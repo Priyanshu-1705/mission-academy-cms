@@ -84,10 +84,17 @@ export const createLeader = async (req, res) => {
             });
         }
 
-        if (!name?.trim() || !designation?.trim() || !message?.trim()) {
+        const errors = {};
+
+        if (!name?.trim()) errors.name = "Name is required.";
+        if (!designation?.trim()) errors.designation = "Designation is required.";
+        if (!message?.trim()) errors.message = "Message is required.";
+
+        if (Object.keys(errors).length) {
             return res.status(400).json({
                 success: false,
-                message: "All fields are required."
+                message: "Validation failed.",
+                errors
             });
         }
 
@@ -97,9 +104,9 @@ export const createLeader = async (req, res) => {
         const nextOrder = lastLeader ? lastLeader.order + 1 : 0;
 
         const leader = await Leader.create({
-            name,
-            designation,
-            message,
+            name: name.trim(),
+            designation: designation.trim(),
+            message: message.trim(),
             photoUrl: url,
             cloudinaryPublicId: publicId,
             order: nextOrder

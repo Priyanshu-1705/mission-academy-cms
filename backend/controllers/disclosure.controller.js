@@ -30,6 +30,13 @@ const VALID_CATEGORIES = [
 const buildDisclosureFilter = (query) => {
     const filter = {};
 
+    if (
+        query.category &&
+        !VALID_CATEGORIES.includes(query.category.trim())
+    ) {
+        throw new Error("Invalid category.");
+    }
+
     if (query.category?.trim()) {
         filter.category = query.category.trim();
     }
@@ -63,6 +70,16 @@ export const getDisclosures = async (req, res) => {
             data: disclosures
         });
     } catch (error) {
+        console.error(
+            "[Disclosure Controller] Get Disclosures:",
+            error.message
+        );
+        if (error.message === "Invalid category.") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -84,6 +101,16 @@ export const getPublicDisclosures = async (req, res) => {
             data: disclosures
         });
     } catch (error) {
+        console.error(
+            "[Disclosure Controller] Get Public Disclosures:",
+            error.message
+        );
+        if (error.message === "Invalid category.") {
+            return res.status(400).json({
+                success: false,
+                message: error.message
+            });
+        }
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -128,7 +155,10 @@ const validateDisclosure = ({ title, documentCode, category, displayOrder }) => 
 export const createDisclosure = async (req, res) => {
     try {
         const { title, documentCode, category } = req.body;
-        const displayOrder = Number(req.body.displayOrder);
+        const displayOrder =
+            req.body.displayOrder !== undefined
+                ? Number(req.body.displayOrder)
+                : 0;
         const validationError = validateDisclosure({
             title,
             documentCode,
@@ -165,6 +195,10 @@ export const createDisclosure = async (req, res) => {
             data: disclosure
         });
     } catch (error) {
+        console.error(
+            "[Disclosure Controller] Create Disclosure:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -253,6 +287,10 @@ export const updateDisclosure = async (req, res) => {
             data: disclosure
         });
     } catch (error) {
+        console.error(
+            "[Disclosure Controller] Update Disclosure:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -304,6 +342,10 @@ export const deleteDisclosure = async (req, res) => {
             message: "Disclosure deleted successfully."
         });
     } catch (error) {
+        console.error(
+            "[Disclosure Controller] Delete Disclosure:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."

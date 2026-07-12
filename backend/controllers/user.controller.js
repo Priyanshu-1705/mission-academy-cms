@@ -113,7 +113,7 @@ export const createPrincipal = async (req, res) => {
 
         // Create principal
         const principal = await User.create({
-            name,
+            name: name.trim(),
             email: email.toLowerCase(),
             password: hashedPassword,
 
@@ -221,7 +221,7 @@ export const resetUserPassword = async (req, res) => {
             });
         }
 
-        if (newPassword.length < 8) {
+        if (newPassword.trim().length < 8) {
             return res.status(400).json({
                 success: false,
                 message: "Password must be at least 8 characters."
@@ -247,7 +247,7 @@ export const resetUserPassword = async (req, res) => {
         }
 
         // Hash password
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        const hashedPassword = await bcrypt.hash(newPassword.trim(), 10);
 
         user.password = hashedPassword;
 

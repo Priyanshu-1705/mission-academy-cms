@@ -1,5 +1,6 @@
 import TransferCertificate from "../models/TransferCertificate.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
 
 /**
  * Transfer Certificate Controller
@@ -54,25 +55,38 @@ export const getCertificates = async (req, res) => {
       data: certificates
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    console.error(
+      "[Transfer Certificate Controller] Get Certificates:",
+      error
+    );
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
   }
 };
 
 /**
  * POST /api/transfer-certificates
- * Admin-facing. Rejects if a certificate for this admission number already exists.
+ * Now expects a real PDF file (multipart/form-data) instead of a
+ * JSON pdfUrl/cloudinaryPublicId pair.
  */
 export const createCertificate = async (req, res) => {
   try {
-    const { admissionNumber, studentName, pdfUrl, cloudinaryPublicId } = req.body;
+    const { admissionNumber, studentName } = req.body;
 
-    if (
-      !admissionNumber?.trim() ||
-      !studentName?.trim() ||
-      !pdfUrl?.trim() ||
-      !cloudinaryPublicId?.trim()
-    ) {
-      return res.status(400).json({ success: false, message: "All fields are required." });
+    if (!admissionNumber?.trim() || !studentName?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Admission number and student name are required."
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate PDF is required."
+      });
     }
 
     const isExistAdmissionNumber = await TransferCertificate.findOne({ admissionNumber });
@@ -84,11 +98,13 @@ export const createCertificate = async (req, res) => {
       });
     }
 
+    const { url, publicId } = await uploadToCloudinary(req.file.buffer, "transfer-certificates", "raw");
+
     const certificate = await TransferCertificate.create({
-      admissionNumber,
-      studentName,
-      pdfUrl,
-      cloudinaryPublicId
+      admissionNumber: admissionNumber.trim(),
+      studentName: studentName.trim(),
+      pdfUrl: url,
+      cloudinaryPublicId: publicId
     });
 
     return res.status(201).json({
@@ -97,48 +113,64 @@ export const createCertificate = async (req, res) => {
       data: certificate
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    console.error("[Transfer Certificate Controller] Create Certificate:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
   }
 };
 
 /**
  * PATCH /api/transfer-certificates/:id
- * Admin-facing. Admission number cannot be changed once created.
+ * A new PDF file is optional — this is the "Replace" action when provided.
  */
 export const updateCertificate = async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!isValidObjectId(id)) {
-      return res.status(400).json({ success: false, message: "Invalid certificate ID." });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid certificate ID."
+      });
     }
 
-    const { studentName, pdfUrl, cloudinaryPublicId } = req.body;
+    const { studentName } = req.body;
     const certificate = await TransferCertificate.findById(id);
 
     if (!certificate) {
-      return res.status(404).json({ success: false, message: "Transfer certificate not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Transfer certificate not found."
+      });
     }
 
     if (studentName !== undefined) {
       if (!studentName.trim()) {
-        return res.status(400).json({ success: false, message: "Student name cannot be empty." });
+        return res.status(400).json({
+          success: false,
+          message: "Student name cannot be empty."
+        });
       }
-      certificate.studentName = studentName;
+      certificate.studentName = studentName.trim();
     }
 
-    if (pdfUrl !== undefined) {
-      if (!pdfUrl.trim()) {
-        return res.status(400).json({ success: false, message: "PDF URL cannot be empty." });
-      }
-      certificate.pdfUrl = pdfUrl;
-    }
+    if (req.file) {
+      const { url, publicId } = await uploadToCloudinary(req.file.buffer, "transfer-certificates", "raw");
 
-    if (cloudinaryPublicId !== undefined) {
-      if (!cloudinaryPublicId.trim()) {
-        return res.status(400).json({ success: false, message: "Cloudinary Public ID cannot be empty." });
+      try {
+        await deleteFromCloudinary(certificate.cloudinaryPublicId, "raw");
+      } catch (cloudinaryError) {
+        console.error(
+          "[Transfer Certificate Controller] Failed to delete previous PDF:",
+          certificate._id.toString(),
+          cloudinaryError.message
+        );
       }
-      certificate.cloudinaryPublicId = cloudinaryPublicId;
+
+      certificate.pdfUrl = url;
+      certificate.cloudinaryPublicId = publicId;
     }
 
     await certificate.save();
@@ -149,34 +181,58 @@ export const updateCertificate = async (req, res) => {
       data: certificate
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    console.error("[Transfer Certificate Controller] Update Certificate:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
   }
 };
 
 /**
  * DELETE /api/transfer-certificates/:id
- * Admin-facing.
+ * Now actually deletes the Cloudinary PDF too.
  */
 export const deleteCertificate = async (req, res) => {
   try {
     const { id } = req.params;
 
     if (!isValidObjectId(id)) {
-      return res.status(400).json({ success: false, message: "Invalid certificate ID." });
+      return res.status(400).json({
+        success: false,
+        message: "Invalid certificate ID."
+      });
     }
 
     const certificate = await TransferCertificate.findByIdAndDelete(id);
 
     if (!certificate) {
-      return res.status(404).json({ success: false, message: "Transfer certificate not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Transfer certificate not found."
+      });
     }
 
-    // Cloudinary deletion deferred until upload integration exists —
-    // only the MongoDB record is removed for now.
+    try {
+      await deleteFromCloudinary(certificate.cloudinaryPublicId, "raw");
+    } catch (cloudinaryError) {
+      console.error(
+        "[Transfer Certificate Controller] Failed to delete PDF on certificate delete:",
+        certificate._id.toString(),
+        cloudinaryError.message
+      );
+    }
 
-    return res.status(200).json({ success: true, message: "Transfer certificate deleted successfully." });
+    return res.status(200).json({
+      success: true,
+      message: "Transfer certificate deleted successfully."
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    console.error("[Transfer Certificate Controller] Delete Certificate:", error.message);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
   }
 };
 
@@ -189,13 +245,19 @@ export const lookupCertificateByAdmissionNumber = async (req, res) => {
     const { admissionNumber } = req.params;
 
     if (!admissionNumber?.trim()) {
-      return res.status(400).json({ success: false, message: "Admission number is required." });
+      return res.status(400).json({
+        success: false,
+        message: "Admission number is required."
+      });
     }
 
     const certificate = await TransferCertificate.findOne({ admissionNumber });
 
     if (!certificate) {
-      return res.status(404).json({ success: false, message: "Transfer certificate not found." });
+      return res.status(404).json({
+        success: false,
+        message: "Transfer certificate not found."
+      });
     }
 
     return res.status(200).json({
@@ -204,6 +266,13 @@ export const lookupCertificateByAdmissionNumber = async (req, res) => {
       pdfUrl: certificate.pdfUrl
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: "Internal server error." });
+    console.error(
+      "[Transfer Certificate Controller] Lookup Certificate:",
+      error
+    );
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error."
+    });
   }
 };

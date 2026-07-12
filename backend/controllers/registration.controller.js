@@ -300,7 +300,7 @@ export const updateRegistrationStatus = async (req, res) => {
             });
         }
 
-        if (!status || !["pending", "approved", "rejected"].includes(status)) {
+        if (!status || !VALID_STATUS.includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: "Invalid status provided. Must be 'pending', 'approved', or 'rejected'."
@@ -326,6 +326,10 @@ export const updateRegistrationStatus = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Registration Controller] Update Registration Status:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -382,12 +386,12 @@ export const updateRegistration = async (req, res) => {
                     message: "Student name cannot be empty."
                 });
             }
-            registration.studentName = studentName;
+            registration.studentName = studentName.trim();
         }
 
         if (dob !== undefined) {
             const dobDate = new Date(dob);
-            if (isNaN(dobDate.getTime())) {
+            if (Number.isNaN(dobDate.getTime())) {
                 return res.status(400).json({
                     success: false,
                     message: "Invalid date of birth format."
@@ -397,7 +401,7 @@ export const updateRegistration = async (req, res) => {
         }
 
         if (gender !== undefined) {
-            if (!["male", "female", "other"].includes(gender)) {
+            if (!VALID_GENDERS.includes(gender)) {
                 return res.status(400).json({
                     success: false,
                     message: "Invalid gender. Must be 'male', 'female', or 'other'."
@@ -407,22 +411,17 @@ export const updateRegistration = async (req, res) => {
         }
 
         if (classApplied !== undefined) {
-            const validClasses = [
-                "Nursery", "LKG", "UKG", "Class I", "Class II", "Class III",
-                "Class IV", "Class V", "Class VI", "Class VII", "Class VIII",
-                "Class IX", "Class X", "Class XI", "Class XII"
-            ];
-            if (!validClasses.includes(classApplied)) {
+            if (!VALID_CLASSES.includes(classApplied)) {
                 return res.status(400).json({
                     success: false,
-                    message: "Invalid class applied. Must be one of the following: " + validClasses.join(", ")
+                    message: "Invalid class applied. Must be one of the following: " + VALID_CLASSES.join(", ")
                 });
             }
             registration.classApplied = classApplied;
         }
 
         if (previousSchool !== undefined) {
-            registration.previousSchool = previousSchool;
+            registration.previousSchool = previousSchool.trim();
         }
 
         if (fatherName !== undefined) {
@@ -432,7 +431,7 @@ export const updateRegistration = async (req, res) => {
                     message: "Father's name cannot be empty."
                 });
             }
-            registration.fatherName = fatherName;
+            registration.fatherName = fatherName.trim();
         }
 
         if (motherName !== undefined) {
@@ -442,7 +441,7 @@ export const updateRegistration = async (req, res) => {
                     message: "Mother's name cannot be empty."
                 });
             }
-            registration.motherName = motherName;
+            registration.motherName = motherName.trim();
         }
 
         if (parentPhone !== undefined) {
@@ -462,7 +461,7 @@ export const updateRegistration = async (req, res) => {
                     message: "Please enter a valid email."
                 });
             }
-            registration.email = email;
+            registration.email = email.trim().toLowerCase();
         }
 
         if (address !== undefined) {
@@ -472,17 +471,25 @@ export const updateRegistration = async (req, res) => {
                     message: "Address cannot be empty."
                 });
             }
-            registration.address = address;
+            registration.address = address.trim();
         }
 
         if (status !== undefined) {
-            if (!["pending", "approved", "rejected"].includes(status)) {
+            if (!VALID_STATUS.includes(status)) {
                 return res.status(400).json({
                     success: false,
                     message: "Invalid status provided. Must be 'pending', 'approved', or 'rejected'."
                 });
             }
             registration.status = status;
+        }
+
+        if (registration.status === status) {
+            return res.status(200).json({
+                success: true,
+                message: "Registration already has this status.",
+                data: registration
+            });
         }
 
         await registration.save();
@@ -493,6 +500,10 @@ export const updateRegistration = async (req, res) => {
             data: registration
         });
     } catch (error) {
+        console.error(
+            "[Registration Controller] Update Registration:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
@@ -533,6 +544,10 @@ export const deleteRegistration = async (req, res) => {
         });
 
     } catch (error) {
+        console.error(
+            "[Registration Controller] Delete Registration:",
+            error.message
+        );
         return res.status(500).json({
             success: false,
             message: "Internal server error."
