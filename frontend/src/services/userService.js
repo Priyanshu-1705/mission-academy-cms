@@ -1,4 +1,4 @@
-import { api, getApiErrorMessage, normalize } from './api';
+import { api, getApiErrorMessage, normalize } from "./api";
 
 /**
  * User Service
@@ -7,10 +7,14 @@ import { api, getApiErrorMessage, normalize } from './api';
  * Talks to the real backend's User Management endpoints.
  *
  * Notes:
- * - All endpoints require authentication.
- * - All endpoints are restricted to the Super Admin role.
- * - createuser() creates a new Principal account.
- * - updateUserStatus() enables or disables a Principal account.
+ * - All endpoints require authentication and are restricted to the
+ *   Super Admin role — the backend enforces this via
+ *   requireRole("super_admin"); a Principal calling any of these
+ *   will get a real 403 from the server.
+ * - createUser() creates a new Principal account.
+ * - updateUserStatus() toggles a Principal account's active/disabled
+ *   state — the backend simply flips the existing value, so no
+ *   status value needs to be sent.
  * - resetPassword() requires a newPassword value in the request body.
  * - All requests use JSON; no file uploads are involved.
  */
@@ -34,9 +38,9 @@ export const userService = {
     }
   },
 
-  async updateUserStatus(id, status) {
+  async updateUserStatus(id) {
     try {
-      const response = await api.patch(`/users/${id}/toggle-status`, { status });
+      const response = await api.patch(`/users/${id}/toggle-status`);
       return normalize(response.data);
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
@@ -59,5 +63,5 @@ export const userService = {
     } catch (err) {
       throw new Error(getApiErrorMessage(err));
     }
-  },
+  }
 };
