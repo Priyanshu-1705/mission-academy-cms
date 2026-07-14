@@ -88,14 +88,7 @@ const fetchBoardAchievers = async (query) => {
  * - null if valid
  * - error message if invalid
  */
-const validateBoardAchiever = ({
-    studentName,
-    className,
-    percentage,
-    rank,
-    year,
-}) => {
-
+const validateBoardAchiever = ({ studentName, className, percentage, rank, year, stream }) => {
     if (!studentName?.trim()) {
         return "Student name is required.";
     }
@@ -104,24 +97,27 @@ const validateBoardAchiever = ({
         return "Invalid class.";
     }
 
-    if (
-        !Number.isFinite(percentage) ||
-        percentage < 0 ||
-        percentage > 100
-    ) {
+    if (!Number.isFinite(Number(percentage)) || percentage < 0 || percentage > 100) {
         return "Percentage must be between 0 and 100.";
     }
 
-    if (
-        !Number.isInteger(rank) ||
-        rank < 1
-    ) {
+    if (!Number.isInteger(Number(rank)) || rank < 1) {
         return "Rank must be a positive integer.";
     }
 
     if (!/^\d{4}-\d{2}$/.test(year)) {
         return "Academic year must be in the format YYYY-YY.";
     }
+
+    // Stream only applies to Class XII — required there, must be absent for Class X.
+    if (className === "Class XII") {
+        if (!stream || !["Science", "Commerce", "Arts"].includes(stream)) {
+            return "Stream is required for Class XII and must be Science, Commerce, or Arts.";
+        }
+    } else if (className === "Class X" && stream) {
+        return "Stream does not apply to Class X.";
+    }
+
     return null;
 };
 
@@ -243,7 +239,8 @@ export const createBoardAchiever = async (req, res) => {
         const {
             studentName,
             className,
-            year
+            year,
+            stream
         } = req.body;
 
         // Convert multipart/form-data values to numbers
@@ -256,7 +253,8 @@ export const createBoardAchiever = async (req, res) => {
             className,
             percentage,
             rank,
-            year
+            year,
+            stream
         });
 
         if (validationError) {
@@ -291,6 +289,7 @@ export const createBoardAchiever = async (req, res) => {
         const achiever = await BoardAchiever.create({
             studentName: studentName.trim(),
             className: className.trim(),
+            stream: stream?.trim(),
             percentage,
             rank,
             year: year.trim(),
@@ -367,6 +366,7 @@ export const updateBoardAchiever = async (req, res) => {
         const {
             studentName,
             className,
+            stream,
             percentage,
             rank,
             year,
@@ -382,6 +382,10 @@ export const updateBoardAchiever = async (req, res) => {
 
         if (className !== undefined) {
             achiever.className = className.trim();
+        }
+
+        if (stream !== undefined) {
+            achiever.stream = stream.trim();
         }
 
         if (percentage !== undefined) {

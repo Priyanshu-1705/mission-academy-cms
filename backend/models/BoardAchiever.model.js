@@ -29,6 +29,10 @@ const boardAchieverSchema = new mongoose.Schema({
         required: true,
         enum: ["Class X", "Class XII"]
     },
+    stream: {
+        type: String,
+        enum: ["Science", "Commerce", "Arts"]
+    },
     percentage: {
         type: Number,
         required: true,
