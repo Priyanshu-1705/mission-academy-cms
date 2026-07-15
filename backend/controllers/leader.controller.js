@@ -75,7 +75,7 @@ export const getPublicLeaders = async (req, res) => {
  */
 export const createLeader = async (req, res) => {
     try {
-        const { name, designation, message } = req.body;
+        const { name, designation, message, bio } = req.body;
 
         if (!req.file) {
             return res.status(400).json({
@@ -106,6 +106,7 @@ export const createLeader = async (req, res) => {
         const leader = await Leader.create({
             name: name.trim(),
             designation: designation.trim(),
+            bio: bio?.trim() || "",
             message: message.trim(),
             photoUrl: url,
             cloudinaryPublicId: publicId,
@@ -145,7 +146,7 @@ export const updateLeader = async (req, res) => {
             });
         }
 
-        const { name, designation, message } = req.body;
+        const { name, designation, message, bio } = req.body;
         const leader = await Leader.findById(id);
 
         if (!leader) {
@@ -177,6 +178,7 @@ export const updateLeader = async (req, res) => {
         if (name !== undefined) leader.name = name.trim();
         if (designation !== undefined) leader.designation = designation.trim();
         if (message !== undefined) leader.message = message.trim();
+        if (bio !== undefined) leader.bio = bio.trim();
 
         await leader.save();
 

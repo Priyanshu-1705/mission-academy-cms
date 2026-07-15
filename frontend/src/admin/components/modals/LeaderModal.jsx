@@ -69,6 +69,10 @@ export function LeaderModal({ editingLeader, leaderForm, setLeaderForm, handleSa
             <label className="text-xs font-bold text-gray-700 uppercase">Message</label>
             <textarea value={leaderForm.message || ""} onChange={e => handleChange("message", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" rows={3}></textarea>
           </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-700 uppercase">Biography (optional, shown on About page)</label>
+            <textarea value={leaderForm.bio || ""} onChange={e => handleChange("bio", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" rows={3}></textarea>
+          </div>
 
           {/* Profile Image Dropzone */}
           <div className="space-y-2">

@@ -49,6 +49,12 @@ const leaderSchema = new mongoose.Schema(
             trim: true,
             maxlength: 100
         },
+        // Short bio
+        bio: {
+            type: String,
+            trim: true,
+            maxlength: 1000
+        },
         // Welcome/bio message shown alongside the leader's card.
         message: {
             type: String,
