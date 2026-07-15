@@ -8,37 +8,50 @@ import mongoose from "mongoose";
  *
  * Responsibilities:
  * - Store the banner image URL.
+ * - Store optional per-slide marketing text and call-to-action.
  * - Control banner visibility.
  * - Maintain display order.
  *
  * Notes:
  * Banner images are stored in Cloudinary.
  * Both Super Admin and Principal can manage banners.
+ * title/subtitle/ctaText/ctaLink are all optional — a banner can be
+ * a purely decorative image with no text overlay, or a fully
+ * captioned slide with its own call-to-action button.
  */
 
-const bannerSchema = new mongoose.Schema(
-    {
-        // Public URL of the banner image stored in Cloudinary.
+const bannerSchema = new mongoose.Schema({
         imageUrl: {
             type: String,
-            required: true,
-            trim: true
+            required: true
         },
-
         cloudinaryPublicId: {
             type: String,
             required: true
         },
-
-        // Determines whether the banner is visible
-        // on the public homepage.
+        title: {
+            type: String,
+            trim: true,
+            maxlength: 150
+        },
+        subtitle: {
+            type: String,
+            trim: true,
+            maxlength: 300
+        },
+        ctaText: {
+            type: String,
+            trim: true,
+            maxlength: 40
+        },
+        ctaLink: {
+            type: String,
+            trim: true
+        },
         active: {
             type: Boolean,
             default: true
         },
-
-        // Controls display order.
-        // Lower numbers appear first.
         order: {
             type: Number,
             default: 0,
@@ -50,10 +63,7 @@ const bannerSchema = new mongoose.Schema(
     }
 );
 
-// Optimizes sorting banners by display order.
-bannerSchema.index({
-    order: 1
-});
+bannerSchema.index({ order: 1 });
 
 const Banner = mongoose.model("Banner", bannerSchema);
 

@@ -78,12 +78,10 @@ export const createBanner = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Banner image is required." });
         }
-        const active =
-            req.body.active === undefined
-                ? true
-                : req.body.active === "true";
 
-        const { url, publicId } = await uploadToCloudinary(req.file.buffer, "banners");
+        const { active, title, subtitle, ctaText, ctaLink } = req.body;
+
+        const { url, publicId } = await uploadToCloudinary(req.file.buffer, "banners", "image");
 
         const lastBanner = await Banner.findOne().sort({ order: -1 });
         const nextOrder = lastBanner ? lastBanner.order + 1 : 0;
@@ -91,6 +89,10 @@ export const createBanner = async (req, res) => {
         const banner = await Banner.create({
             imageUrl: url,
             cloudinaryPublicId: publicId,
+            title: title?.trim() || "",
+            subtitle: subtitle?.trim() || "",
+            ctaText: ctaText?.trim() || "",
+            ctaLink,
             active: active !== undefined ? active : true,
             order: nextOrder
         });
@@ -101,10 +103,8 @@ export const createBanner = async (req, res) => {
             data: banner
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error."
-        });
+        console.error("[Banner Controller] Create Banner:", error.message);
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 
@@ -119,44 +119,38 @@ export const updateBanner = async (req, res) => {
         const { id } = req.params;
 
         if (!isValidObjectId(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid banner id."
-            });
+            return res.status(400).json({ success: false, message: "Invalid banner id." });
         }
 
-        const { active } = req.body;
+        const { active, title, subtitle, ctaText, ctaLink } = req.body;
         const banner = await Banner.findById(id);
 
         if (!banner) {
-            return res.status(404).json({
-                success: false,
-                message: "Banner not found."
-            });
+            return res.status(404).json({ success: false, message: "Banner not found." });
         }
 
         if (req.file) {
             const { url, publicId } = await uploadToCloudinary(req.file.buffer, "banners", "image");
 
-            // Delete the old image from Cloudinary only after the new one
-            // uploads successfully — avoids losing both if the new upload fails.
             try {
                 await deleteFromCloudinary(banner.cloudinaryPublicId, "image");
             } catch (cloudinaryError) {
-                console.error(
-                    "[Banner Controller] Failed to delete previous banner image:",
-                    banner._id.toString(),
-                    cloudinaryError.message
-                );
+                console.error("[Banner Controller] Failed to delete previous image:", {
+                    bannerId: banner._id,
+                    publicId: banner.cloudinaryPublicId,
+                    error: cloudinaryError.message
+                });
             }
 
             banner.imageUrl = url;
             banner.cloudinaryPublicId = publicId;
         }
 
-        if (active !== undefined) {
-            banner.active = active === "true";
-        }
+        if (active !== undefined) banner.active = active;
+        if (title !== undefined) banner.title = title.trim();
+        if (subtitle !== undefined) banner.subtitle = subtitle.trim();
+        if (ctaText !== undefined) banner.ctaText = ctaText.trim();
+        if (ctaLink !== undefined) banner.ctaLink = ctaLink;
 
         await banner.save();
 
@@ -166,10 +160,8 @@ export const updateBanner = async (req, res) => {
             data: banner
         });
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error."
-        });
+        console.error("[Banner Controller] Update Banner:", error.message);
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
 };
 

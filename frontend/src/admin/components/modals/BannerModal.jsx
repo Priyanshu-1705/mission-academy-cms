@@ -65,6 +65,16 @@ export function BannerModal({ editingBanner, bannerForm, setBannerForm, handleSa
             <label className="text-xs font-bold text-gray-700 uppercase">Description Subtitle</label>
             <textarea value={bannerForm.subtitle || ""} onChange={e => handleChange("subtitle", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" rows={3}></textarea>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-700 uppercase">Button Text (optional)</label>
+              <input type="text" value={bannerForm.ctaText || ""} onChange={e => handleChange("ctaText", e.target.value)} placeholder="e.g. Explore Admissions" className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-700 uppercase">Button Link (optional)</label>
+              <input type="text" value={bannerForm.ctaLink || ""} onChange={e => handleChange("ctaLink", e.target.value)} placeholder="/register" className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" />
+            </div>
+          </div>
 
           {/* Image Upload Dropzone */}
           <div className="space-y-2">
