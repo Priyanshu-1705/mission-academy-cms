@@ -59,7 +59,7 @@ export function AlbumModal({ editingAlbum, albumForm, setAlbumForm, handleSaveAl
         <div className="space-y-4">
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-700 uppercase">Album Title</label>
-            <input type="text" value={albumForm.title || ""} onChange={e => handleChange("title", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" />
+            <input type="text" value={albumForm.name || ""} onChange={e => handleChange("name", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" />
           </div>
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-700 uppercase">Description / Note</label>

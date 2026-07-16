@@ -35,7 +35,7 @@ export function DisclosureTab({ disclosures, handleOpenDocModal, handleDeleteDis
               </div>
               <div>
                 <p className="font-bold text-sm text-gray-900">{doc.title}</p>
-                <p className="text-xs text-gray-500">{CATEGORY_LABELS[doc.category] || doc.category} | Code: {doc.code}</p>
+                <p className="text-xs text-gray-500">{CATEGORY_LABELS[doc.category] || doc.category} | Code: {doc.documentCode}</p>
               </div>
             </div>
             <button onClick={() => handleDeleteDisclosure(doc.id)} className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg text-gray-400 transition-colors">

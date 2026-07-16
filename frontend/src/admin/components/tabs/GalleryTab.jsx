@@ -34,9 +34,9 @@ export function GalleryTab({ albums, albumSearch, setAlbumSearch, filteredAlbums
         ) : (
           filteredAlbums.map((album) => (
             <div key={album.id} className="border border-gray-100 rounded-2xl overflow-hidden hover:shadow-md transition-shadow group relative">
-              <img src={album.coverImageUrl} alt={album.title} className="w-full h-44 object-cover" />
+              <img src={album.coverImageUrl} alt={album.name} className="w-full h-44 object-cover" />
               <div className="p-4 space-y-1">
-                <p className="font-bold text-sm text-gray-900 group-hover:text-school-primary transition-colors">{album.title}</p>
+                <p className="font-bold text-sm text-gray-900 group-hover:text-school-primary transition-colors">{album.name}</p>
                 <p className="text-xs text-gray-500 line-clamp-2">{album.description}</p>
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider pt-2">{album.images?.length || 0} Photos</p>
               </div>

@@ -171,7 +171,7 @@ export default function AdminDashboard() {
     logoUrl: "",
   });
   const [albumForm, setAlbumForm] = useState({
-    title: "",
+    name: "",
     description: "",
     coverImage: null,
     coverImageUrl: "",
@@ -522,6 +522,8 @@ export default function AdminDashboard() {
     formData.append("title", bannerForm.title);
     formData.append("subtitle", bannerForm.subtitle);
     formData.append("active", bannerForm.active);
+    formData.append("ctaText", bannerForm.ctaText || "");
+    formData.append("ctaLink", bannerForm.ctaLink || "");
 
     if (bannerForm.image) {
       formData.append("image", bannerForm.image);
@@ -610,6 +612,7 @@ export default function AdminDashboard() {
     formData.append("name", leaderForm.name);
     formData.append("designation", leaderForm.designation);
     formData.append("message", leaderForm.message);
+    formData.append("bio", leaderForm.bio || "");
 
     if (leaderForm.photo) {
       formData.append("photo", leaderForm.photo);
@@ -1114,7 +1117,7 @@ export default function AdminDashboard() {
       setEditingAlbum(album);
 
       setAlbumForm({
-        title: album.title,
+        name: album.name,
         description: album.description,
         coverImage: null,
         coverImageUrl: album.coverImageUrl || "",
@@ -1124,7 +1127,7 @@ export default function AdminDashboard() {
       setEditingAlbum(null);
 
       setAlbumForm({
-        title: "",
+        name: "",
         description: "",
         coverImage: null,
         coverImageUrl: "",
@@ -1140,7 +1143,7 @@ export default function AdminDashboard() {
 
     const formData = new FormData();
 
-    formData.append("title", albumForm.title);
+    formData.append("name", albumForm.name);
     formData.append("description", albumForm.description);
     formData.append("date", albumForm.date);
 
