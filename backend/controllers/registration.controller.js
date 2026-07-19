@@ -1,5 +1,8 @@
 import Registration from "../models/Registration.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
+import { sendMail } from "../utils/mailService.util.js";
+import { registrationAcknowledgementTemplate } from "../templates/registrationAcknowledgement.template.js";
+import { registrationNotificationTemplate } from "../templates/registrationNotification.template.js";
 const VALID_CLASSES = [
     "Nursery",
     "LKG",
@@ -260,6 +263,24 @@ export const submitRegistration = async (req, res) => {
             status: "pending"
         });
 
+        try {
+            await sendMail({
+                to: process.env.EMAIL_USER,
+                subject: `New Admission Registration - ${registration.studentName}`,
+                html: registrationNotificationTemplate(registration),
+            });
+
+            if (registration.email) {
+                await sendMail({
+                    to: registration.email,
+                    subject: "Admission Registration Received | Mission Academy Baheri",
+                    html: registrationAcknowledgementTemplate(registration),
+                });
+            }
+        } catch {
+            // Ignore email errors
+        }
+
         return res.status(201).json({
             success: true,
             message: "Registration submitted successfully.",
@@ -346,39 +367,39 @@ export const updateRegistrationStatus = async (req, res) => {
  * Allows updating any field of the registration.
  */
 export const updateRegistration = async (req, res) => {
-  try {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
 
-    if (!isValidObjectId(id)) {
-      return res.status(400).json({ success: false, message: "Invalid registration ID." });
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: "Invalid registration ID." });
+        }
+
+        const { studentName, dob, gender, classApplied, previousSchool, fatherName, motherName, parentPhone, email, address, status } = req.body;
+
+        const registration = await Registration.findById(id);
+
+        if (!registration) {
+            return res.status(404).json({ success: false, message: "Registration not found." });
+        }
+
+        // ... all the existing field-by-field validation/assignment blocks stay exactly as they are ...
+
+        // REMOVE the "if (registration.status === status)" early-return block entirely —
+        // it compares status against itself after already being reassigned, which means
+        // it always triggers whenever status is included, silently discarding every
+        // other field change in the same request. Just save unconditionally instead.
+
+        await registration.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Registration updated successfully.",
+            data: registration
+        });
+    } catch (error) {
+        console.error("[Registration Controller] Update Registration:", error.message);
+        return res.status(500).json({ success: false, message: "Internal server error." });
     }
-
-    const { studentName, dob, gender, classApplied, previousSchool, fatherName, motherName, parentPhone, email, address, status } = req.body;
-
-    const registration = await Registration.findById(id);
-
-    if (!registration) {
-      return res.status(404).json({ success: false, message: "Registration not found." });
-    }
-
-    // ... all the existing field-by-field validation/assignment blocks stay exactly as they are ...
-
-    // REMOVE the "if (registration.status === status)" early-return block entirely —
-    // it compares status against itself after already being reassigned, which means
-    // it always triggers whenever status is included, silently discarding every
-    // other field change in the same request. Just save unconditionally instead.
-
-    await registration.save();
-
-    return res.status(200).json({
-      success: true,
-      message: "Registration updated successfully.",
-      data: registration
-    });
-  } catch (error) {
-    console.error("[Registration Controller] Update Registration:", error.message);
-    return res.status(500).json({ success: false, message: "Internal server error." });
-  }
 };
 
 /**

@@ -1,6 +1,8 @@
 import Enquiry from "../models/Enquiry.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
-
+import { sendMail } from "../utils/mailService.util.js";
+import { enquiryNotificationTemplate } from "../templates/enquiryNotification.template.js";
+import { enquiryAcknowledgementTemplate } from "../templates/enquiryAcknowledgement.template.js";
 const VALID_STATUS = ["pending", "resolved"];
 
 /**
@@ -149,6 +151,24 @@ export const createEnquiry = async (req, res) => {
             message: message.trim(),
             status: "pending"
         });
+
+        try {
+            await sendMail({
+                to: process.env.EMAIL_USER,
+                subject: `New Website Enquiry - ${enquiry.name}`,
+                html: enquiryNotificationTemplate(enquiry),
+            });
+
+            if (enquiry.email) {
+                await sendMail({
+                    to: enquiry.email,
+                    subject: "We've Received Your Enquiry | Mission Academy Baheri",
+                    html: enquiryAcknowledgementTemplate(enquiry),
+                });
+            }
+        } catch {
+            // Ignore email errors
+        }
 
         return res.status(201).json({
             success: true,
