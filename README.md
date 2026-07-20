@@ -6,7 +6,7 @@ A production-oriented **School Website & Content Management System (CMS)** built
 
 ## 🌐 Live Demo
 
-🚧 Public website deployment is currently in progress.
+🌐 Live Preview: https://masbaheri.vercel.app
 
 > The CMS Admin Portal is intentionally private and accessible only to authorized school administrators.
 
