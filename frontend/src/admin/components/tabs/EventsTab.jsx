@@ -1,10 +1,5 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import React from "react";
-import { Plus, Trash, Search, Calendar } from "lucide-react";
+import { Plus, Trash, Search, Calendar, Edit } from "lucide-react";
 
 export function EventsTab({ eventSearch, setEventSearch, filteredEvents, handleOpenEventModal, handleDeleteEvent }) {
   return (
@@ -35,19 +30,48 @@ export function EventsTab({ eventSearch, setEventSearch, filteredEvents, handleO
 
       <div className="divide-y divide-gray-100">
         {filteredEvents?.map((event) => (
-          <div key={event.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div
+            key={event.id}
+            className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+          >
             <div className="flex items-start space-x-4">
               <div className="p-3 bg-rose-50 text-rose-600 rounded-xl shrink-0">
                 <Calendar className="h-6 w-6" />
               </div>
               <div>
-                <p className="font-bold text-sm text-gray-900">{event.title}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{event.date} | {event.time} | Venue: {event.venue}</p>
-                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{event.description}</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-sm text-gray-900">
+                    {event.title}
+                  </p>
+
+                  <span className="px-2 py-0.5 rounded-full bg-school-primary/10 text-school-primary text-[10px] font-bold uppercase tracking-wide">
+                    {event.category || "General"}
+                  </span>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-1">
+                  {event.date} | {event.time} | Venue: {event.venue}
+                </p>
+
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                  {event.description}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-2 self-end sm:self-auto">
-              <button onClick={() => handleDeleteEvent(event.id)} className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg text-gray-400 transition-colors">
+              <button
+                onClick={() => handleOpenEventModal(event)}
+                className="p-1.5 hover:bg-school-bg hover:text-school-primary rounded-lg text-gray-400 transition-colors"
+                title="Edit Event"
+              >
+                <Edit className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={() => handleDeleteEvent(event.id)}
+                className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg text-gray-400 transition-colors"
+                title="Delete Event"
+              >
                 <Trash className="h-4 w-4" />
               </button>
             </div>

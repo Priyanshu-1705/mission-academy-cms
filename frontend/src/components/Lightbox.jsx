@@ -65,7 +65,7 @@ export default function Lightbox({ isOpen, onClose, photos, currentIndex, setCur
       {/* Main Image container */}
       <div className="max-w-4xl max-h-[80vh] flex flex-col items-center justify-center space-y-4">
         <img
-          src={currentPhoto.imageUrl || currentPhoto}
+          src={currentPhoto.url}
           alt={currentPhoto.caption || "Gallery Photo"}
           referrerPolicy="no-referrer"
           className="max-w-full max-h-[70vh] object-contain rounded-lg shadow-2xl"

@@ -14,11 +14,13 @@ import {
 import { useSchoolData } from "../context/SchoolDataContext";
 import ErrorState from "../components/ErrorState";
 import Loading from "../components/Loading";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function Home() {
+  usePageTitle("Home");
   const [activeSlide, setActiveSlide] = useState(0);
   const { boardAchievers, banners, leaders, isLoading, error, refreshData } = useSchoolData();
-
+  const activeBanners = banners.filter((banner) => banner.active);
   const defaultSlides = [
     {
       image:
@@ -115,34 +117,20 @@ export default function Home() {
     },
   ];
 
-  const defaultLeadership = [
-    {
-      name: "Shri R.K. Gangwar",
-      designation: "Honorable Manager",
-      message:
-        "At Mission Academy, our mission is not just to teach textbooks, but to prepare young men and women to stand tall on the global stage with strong values and integrity.",
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&auto=format&fit=crop&q=60",
-    },
-    {
-      name: "Mrs. Shashi Gangwar",
-      designation: "Managing Director",
-      message:
-        "We believe in a holistic learning system where each student discovers their unique capabilities, whether in academics, scientific innovation, or athletic tracks.",
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=300&auto=format&fit=crop&q=60",
-    },
-    {
-      name: "Dr. S.P. Rastogi",
-      designation: "School Principal",
-      message:
-        "Welcome to a nurturing, supportive, and safe environment designed for experiential learning, where teachers inspire curious minds to dream and build without boundaries.",
-      image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=60",
-    },
-  ];
+  const leadershipToUse = leaders.length > 0 ? leaders : [];
 
-  const leadershipToUse = leaders.length > 0 ? leaders : defaultLeadership;
+  const groupedToppers = boardAchievers.reduce((acc, topper) => {
+    const cls = topper.className;
+
+    if (!acc[cls]) {
+      acc[cls] = [];
+    }
+
+    acc[cls].push(topper);
+    return acc;
+  }, {});
+
+  const displayOrder = ["Class X", "Class XII"];
 
   return (
     <div className="fade-in">
@@ -256,8 +244,8 @@ export default function Home() {
               <div className="h-1 w-20 bg-school-primary rounded" />
               <p className="text-gray-600 leading-relaxed text-[15px] sm:text-base">
                 Established with a vision to deliver world-class infrastructure
-                and rigorous educational models to Bareilly,{" "}
-                <strong>Mission Academy Baheri</strong> stands as a temple of
+                and rigorous educational models to Baheri,{" "}
+                <strong>Mission Academy </strong> stands as a temple of
                 character and learning. Our curriculum is tailored according to
                 modern scientific methods while reinforcing deep ethical
                 frameworks.
@@ -401,44 +389,67 @@ export default function Home() {
           {isLoading ? (
             <Loading size="md" height="h-48" />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
-              {boardAchievers.slice(0, 5).map((topper) => (
-                <div
-                  key={topper.id}
-                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group text-center"
-                >
-                  <div className="aspect-[3/4] relative bg-gray-50 overflow-hidden">
-                    <img
-                      src={topper.imageUrl}
-                      alt={topper.studentName}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-104 transition-transform duration-300"
-                    />
+            <div className="space-y-12">
+              {displayOrder.map((cls) => {
+                const toppers = groupedToppers[cls];
 
-                    <div className="absolute top-2.5 right-2.5 bg-yellow-400 text-gray-950 font-extrabold text-[11px] px-2.5 py-1 rounded-full shadow-sm">
-                      Rank {topper.rank}
+                if (!toppers || toppers.length === 0) return null;
+
+                return (
+                  <div key={cls}>
+                    <div className="flex items-center mb-6">
+                      <div className="h-8 w-1 bg-school-primary rounded-full mr-3"></div>
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {cls} Board Toppers
+                      </h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
+                      {toppers.slice(0, 5).map((topper) => (
+                        <div
+                          key={topper.id}
+                          className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col group text-center"
+                        >
+                          <div className="aspect-[3/4] relative bg-gray-50 overflow-hidden">
+                            <img
+                              src={topper.imageUrl}
+                              alt={topper.studentName}
+                              referrerPolicy="no-referrer"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+
+                            <div className="absolute top-2.5 right-2.5 bg-yellow-400 text-gray-950 font-extrabold text-[11px] px-2.5 py-1 rounded-full shadow-sm">
+                              Rank {topper.rank}
+                            </div>
+                          </div>
+
+                          <div className="p-3.5 sm:p-4 space-y-1 flex-grow flex flex-col justify-between">
+                            <div>
+                              <h4 className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-school-primary transition-colors">
+                                {topper.studentName}
+                              </h4>
+
+                              <p className="text-gray-500 text-xs font-semibold mt-0.5">
+                                {topper.stream}
+                              </p>
+                            </div>
+
+                            <div className="pt-2 border-t border-gray-100 mt-2 flex flex-col items-center">
+                              <span className="text-school-primary font-extrabold text-base sm:text-lg">
+                                {topper.percentage}%
+                              </span>
+
+                              <span className="text-[10px] text-gray-400 font-medium">
+                                Batch {topper.year}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <div className="p-3.5 sm:p-4 space-y-1 flex-grow flex flex-col justify-between">
-                    <div>
-                      <h4 className="font-bold text-sm sm:text-base text-gray-900 leading-tight group-hover:text-school-primary transition-colors">
-                        {topper.name}
-                      </h4>
-                      <p className="text-gray-500 text-xs font-semibold mt-0.5">
-                        {topper.class} | {topper.stream}
-                      </p>
-                    </div>
-                    <div className="pt-2 border-t border-gray-100 mt-2 flex flex-col items-center">
-                      <span className="text-school-primary font-extrabold text-base sm:text-lg">
-                        {topper.percentage}%
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-medium leading-none">
-                        Batch {topper.year}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -470,9 +481,18 @@ export default function Home() {
                 <div className="text-school-primary/20 text-5xl font-serif leading-none select-none h-4">
                   “
                 </div>
-                <p className="text-gray-600 text-sm sm:text-[15px] leading-relaxed italic flex-grow pt-2">
-                  {leader.message}
-                </p>
+                <div className="flex-grow pt-2 flex flex-col">
+                  <p className="text-gray-600 text-sm sm:text-[15px] leading-relaxed italic min-h-[9rem]">
+                    {leader.bio}
+                  </p>
+
+                  <Link
+                    to={`/about`}
+                    className="mt-4 inline-flex items-center text-school-primary text-sm font-semibold hover:underline"
+                  >
+                    Read Message →
+                  </Link>
+                </div>
                 <div className="flex items-center space-x-4 pt-6 mt-6 border-t border-gray-50">
                   <img
                     src={leader.photoUrl}
@@ -502,7 +522,7 @@ export default function Home() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 text-center">
             <div className="space-y-1">
               <span className="block text-3xl sm:text-4xl font-extrabold tracking-tight">
-                25+
+                30+
               </span>
               <span className="text-school-bg/85 text-xs sm:text-sm font-medium">
                 Years of Legacy
@@ -510,7 +530,7 @@ export default function Home() {
             </div>
             <div className="space-y-1">
               <span className="block text-3xl sm:text-4xl font-extrabold tracking-tight">
-                40+
+                100+
               </span>
               <span className="text-school-bg/85 text-xs sm:text-sm font-medium">
                 Expert Faculty
@@ -518,7 +538,7 @@ export default function Home() {
             </div>
             <div className="space-y-1">
               <span className="block text-3xl sm:text-4xl font-extrabold tracking-tight">
-                1200+
+                2000+
               </span>
               <span className="text-school-bg/85 text-xs sm:text-sm font-medium">
                 Enrolled Scholars

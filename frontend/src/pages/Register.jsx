@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Check, ChevronRight, ChevronLeft, ClipboardCheck, AlertCircle } from 'lucide-react';
 import { useSchoolData } from '../context/SchoolDataContext';
 import Loading from '../components/Loading';
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function Register() {
+  usePageTitle("Register");
   const { submitRegistration } = useSchoolData();
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState({});
@@ -94,7 +96,7 @@ export default function Register() {
       });
       setSuccess(true);
     } catch (err) {
-      console.error("Admission submission error:", err);
+      console.error(err);
       setApiError(err.message || "An unexpected error occurred. Please try again.");
     } finally {
       setSubmitting(false);
@@ -187,9 +189,9 @@ export default function Register() {
                         <label className="text-xs font-bold text-gray-700 uppercase block">Gender <span className="text-red-500">*</span></label>
                         <select name="gender" value={student.gender} onChange={handleStudentChange} className={`w-full bg-gray-50 border ${errors.gender ? "border-red-400 focus:ring-red-400" : "border-gray-200 focus:ring-school-primary"} rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2`}>
                           <option value="">-- Select Gender --</option>
-                          <option value="Male">Male</option>
-                          <option value="Female">Female</option>
-                          <option value="Other">Other</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
                         </select>
                         {errors.gender && <p className="text-red-500 text-xs flex items-center space-x-1 mt-1"><AlertCircle className="h-3.5 w-3.5" /><span>{errors.gender}</span></p>}
                       </div>

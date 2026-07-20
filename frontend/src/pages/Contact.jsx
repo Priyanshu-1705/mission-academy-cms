@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import  { Mail, Phone, MapPin, Send, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import  { useSchoolData } from '../context/SchoolDataContext';
 import Loading from '../components/Loading';
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function Contact() {
+  usePageTitle("Contact Us");
   const { submitEnquiry, settings } = useSchoolData();
   const [form, setForm] = useState({
     name: "",
@@ -86,7 +88,7 @@ export default function Contact() {
         className="text-white py-16 sm:py-20 relative overflow-hidden bg-cover bg-center"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1523966211575-eb4a01e7dd51?q=80&w=1600&auto=format&fit=crop')",
+            "url('https://images.unsplash.com/photo-1740560051533-3acef26ace95?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
         }}
       >
         <div className="absolute inset-0 bg-emerald-950/85 mix-blend-multiply" />
@@ -135,7 +137,7 @@ export default function Contact() {
                     Campus Address
                   </h4>
                   <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">
-                    Beharipur Road, Near Bypass Crossing, Baheri, Bareilly, Uttar Pradesh - 243201
+                    Mission Academy School, Mandanpur, Baheri, Bareilly, Uttar Pradesh - 243201
                   </p>
                 </div>
               </div>

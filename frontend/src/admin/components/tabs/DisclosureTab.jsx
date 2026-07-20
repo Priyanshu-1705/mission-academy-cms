@@ -1,13 +1,13 @@
 import React from "react";
-import { Plus, Trash, FileText } from "lucide-react";
+import { Plus, Trash, FileText, Pencil } from "lucide-react";
 
 export function DisclosureTab({ disclosures, handleOpenDocModal, handleDeleteDisclosure }) {
   const CATEGORY_LABELS = {
-  general_information: "General Information",
-  documents_information: "Documents & Information",
-  results_academics: "Results & Academics",
-  staff_infrastructure: "Staff & Infrastructure"
-};
+    general_information: "General Information",
+    documents_information: "Documents & Information",
+    results_academics: "Results & Academics",
+    staff_infrastructure: "Staff & Infrastructure"
+  };
   return (
     <div className="bg-white p-6 rounded-2xl border border-gray-150/60 shadow-sm space-y-6 animate-fadeIn">
       <div className="flex justify-between items-center">
@@ -38,9 +38,23 @@ export function DisclosureTab({ disclosures, handleOpenDocModal, handleDeleteDis
                 <p className="text-xs text-gray-500">{CATEGORY_LABELS[doc.category] || doc.category} | Code: {doc.documentCode}</p>
               </div>
             </div>
-            <button onClick={() => handleDeleteDisclosure(doc.id)} className="p-1.5 hover:bg-red-50 hover:text-red-600 rounded-lg text-gray-400 transition-colors">
-              <Trash className="h-4 w-4" />
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => handleOpenDocModal(doc)}
+                className="p-2 rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                title="Edit Document"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+
+              <button
+                onClick={() => handleDeleteDoc(doc.id)}
+                className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                title="Delete Document"
+              >
+                <Trash className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -13,8 +13,10 @@ import { useSchoolData } from "../context/SchoolDataContext";
 import { transferCertificateService } from "../services/transferCertificateService";
 import ErrorState from "../components/ErrorState";
 import Loading from "../components/Loading";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function MandatoryDisclosure() {
+  usePageTitle("Mandatory Disclosures");
   const { disclosures: documents, isLoading, error, refreshData } = useSchoolData();
   const location = useLocation();
   const tcSectionRef = useRef(null);
@@ -215,6 +217,34 @@ export default function MandatoryDisclosure() {
               </div>
             ))
           )}
+
+          {/* New SECTION: Complete tour of school */}
+          <section className="mt-20">
+            <div className="max-w-5xl mx-auto">
+              <span className="text-sm font-bold uppercase tracking-widest text-school-primary">
+                Additional Resource
+              </span>
+
+              <h2 className="mt-2 text-3xl font-bold text-gray-900">
+                Virtual Campus Tour
+              </h2>
+
+              <p className="mt-4 text-gray-600 leading-relaxed max-w-3xl">
+                Explore Mission Academy through our official campus tour and get a glimpse
+                of our classrooms, laboratories, sports facilities, library, and vibrant
+                learning environment.
+              </p>
+
+              <div className="mt-8 overflow-hidden rounded-3xl shadow-xl">
+                <iframe
+                  className="w-full aspect-video"
+                  src="https://www.youtube.com/embed/a3_Lhzbi94U"
+                  title="Mission Academy Campus Tour"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          </section>
 
           {/* NEW SECTION: Student Documents & Services */}
           <div ref={tcSectionRef} className="space-y-6 pt-6">

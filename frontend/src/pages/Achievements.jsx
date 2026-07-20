@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import  { Award, Medal, BookOpen, ChevronDown, ChevronUp, Star, Compass, Music, Trophy } from 'lucide-react';
-import  { useSchoolData } from '../context/SchoolDataContext';
+import { Award, Medal, BookOpen, ChevronDown, ChevronUp, Star, Compass, Music, Trophy } from 'lucide-react';
+import { useSchoolData } from '../context/SchoolDataContext';
 import ErrorState from '../components/ErrorState';
 import Loading from '../components/Loading';
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function Achievements() {
+  usePageTitle("Achievements");
   const [activeTab, setActiveTab] = useState("board");
   const { boardAchievers, otherAchievements, isLoading, error, refreshData } = useSchoolData();
 
@@ -69,7 +71,7 @@ export default function Achievements() {
         className="text-white py-16 sm:py-20 relative overflow-hidden bg-cover bg-center"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1501504905252-473c47e087f8?q=80&w=1600&auto=format&fit=crop')",
+            "url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?q=80&w=1600&auto=format&fit=crop')",
         }}
       >
         <div className="absolute inset-0 bg-emerald-950/85 mix-blend-multiply" />
@@ -95,11 +97,10 @@ export default function Achievements() {
             <button
               id="achievements-tab-board"
               onClick={() => setActiveTab("board")}
-              className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-sm font-bold transition-all ${
-                activeTab === "board"
-                  ? "bg-white text-school-primary shadow-sm"
-                  : "text-gray-500 hover:text-gray-800 hover:bg-white/50"
-              }`}
+              className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === "board"
+                ? "bg-white text-school-primary shadow-sm"
+                : "text-gray-500 hover:text-gray-800 hover:bg-white/50"
+                }`}
             >
               <BookOpen className="h-4 w-4" />
               <span>Board Achievements</span>
@@ -107,11 +108,10 @@ export default function Achievements() {
             <button
               id="achievements-tab-other"
               onClick={() => setActiveTab("other")}
-              className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-sm font-bold transition-all ${
-                activeTab === "other"
-                  ? "bg-white text-school-primary shadow-sm"
-                  : "text-gray-500 hover:text-gray-800 hover:bg-white/50"
-              }`}
+              className={`flex-1 flex items-center justify-center space-x-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === "other"
+                ? "bg-white text-school-primary shadow-sm"
+                : "text-gray-500 hover:text-gray-800 hover:bg-white/50"
+                }`}
             >
               <Award className="h-4 w-4" />
               <span>Other Achievements</span>
@@ -137,6 +137,23 @@ export default function Achievements() {
               {sortedYears.map((year) => {
                 const isExpanded = !!expandedYears[year];
                 const achievers = groupedBoardAchievers[year];
+                const groupedByClass = achievers.reduce((acc, topper) => {
+                  const cls = topper.className;
+
+                  if (!acc[cls]) {
+                    acc[cls] = [];
+                  }
+
+                  acc[cls].push(topper);
+
+                  return acc;
+                }, {});
+
+                Object.values(groupedByClass).forEach(list =>
+                  list.sort((a, b) => a.rank - b.rank)
+                );
+
+                const classOrder = ["Class X", "Class XII"];
                 return (
                   <div
                     key={year}
@@ -171,48 +188,67 @@ export default function Achievements() {
                     {/* Collapsible Student Grid Content */}
                     {isExpanded && (
                       <div className="p-6 sm:p-8 bg-white border-t border-gray-100 animate-fadeIn">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
-                          {achievers
-                            .sort((a, b) => a.rank - b.rank)
-                            .map((topper) => (
-                              <div
-                                key={topper.id}
-                                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col group text-center text-sm"
-                              >
-                                <div className="aspect-[3/4] relative bg-gray-50 overflow-hidden">
-                                  <img
-                                    src={topper.imageUrl}
-                                    alt={topper.studentName}
-                                    referrerPolicy="no-referrer"
-                                    className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
-                                  />
+                        <div className="space-y-10">
+                          {classOrder.map((cls) => {
+                            const toppers = groupedByClass[cls];
+                            if (!toppers?.length) return null;
 
-                                  {/* Rank Indicator Medal */}
-                                  <div className="absolute top-3 right-3 flex items-center space-x-1 bg-yellow-400 text-gray-950 font-black text-xs px-2.5 py-1 rounded-full shadow-sm">
-                                    <Star className="h-3 w-3 fill-gray-950" />
-                                    <span>Rank {topper.rank}</span>
-                                  </div>
+                            return (
+                              <div key={cls}>
+                                <div className="flex items-center mb-5">
+                                  <div className="h-7 w-1 bg-school-primary rounded-full mr-3"></div>
+                                  <h4 className="text-lg sm:text-xl font-bold text-gray-900">
+                                    {cls} Board Toppers
+                                  </h4>
                                 </div>
-                                <div className="p-4 flex-grow flex flex-col justify-between space-y-2">
-                                  <div>
-                                    <h4 className="font-bold text-gray-900 leading-tight group-hover:text-school-primary transition-colors">
-                                      {topper.studentName}
-                                    </h4>
-                                    <p className="text-gray-500 text-xs font-semibold mt-0.5">
-                                      {topper.className} | {topper.stream}
-                                    </p>
-                                  </div>
-                                  <div className="pt-2 border-t border-gray-50 flex flex-col items-center">
-                                    <span className="text-school-primary font-black text-lg">
-                                      {topper.percentage}%
-                                    </span>
-                                    <span className="text-[10px] text-gray-400 font-medium">
-                                      CBSE Board Examination
-                                    </span>
-                                  </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                                  {toppers.map((topper) => (
+                                    <div
+                                      key={topper.id}
+                                      className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-xs hover:shadow-md transition-shadow flex flex-col group text-center text-sm"
+                                    >
+                                      <div className="aspect-[3/4] relative bg-gray-50 overflow-hidden">
+                                        <img
+                                          src={topper.imageUrl}
+                                          alt={topper.studentName}
+                                          referrerPolicy="no-referrer"
+                                          className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-300"
+                                        />
+
+                                        <div className="absolute top-3 right-3 flex items-center space-x-1 bg-yellow-400 text-gray-950 font-black text-xs px-2.5 py-1 rounded-full shadow-sm">
+                                          <Star className="h-3 w-3 fill-gray-950" />
+                                          <span>Rank {topper.rank}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="p-4 flex-grow flex flex-col justify-between space-y-2">
+                                        <div>
+                                          <h4 className="font-bold text-gray-900 leading-tight group-hover:text-school-primary transition-colors">
+                                            {topper.studentName}
+                                          </h4>
+
+                                          <p className="text-gray-500 text-xs font-semibold mt-0.5">
+                                            {topper.stream}
+                                          </p>
+                                        </div>
+
+                                        <div className="pt-2 border-t border-gray-50 flex flex-col items-center">
+                                          <span className="text-school-primary font-black text-lg">
+                                            {topper.percentage}%
+                                          </span>
+
+                                          <span className="text-[10px] text-gray-400 font-medium">
+                                            CBSE Board Examination
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
                                 </div>
                               </div>
-                            ))}
+                            );
+                          })}
                         </div>
                       </div>
                     )}

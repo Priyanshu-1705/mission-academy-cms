@@ -18,6 +18,23 @@ export function EventModal({ editingEvent, eventForm, setEventForm, handleSaveEv
             <label className="text-xs font-bold text-gray-700 uppercase">Event Title</label>
             <input type="text" value={eventForm.title || ""} onChange={e => handleChange("title", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none" />
           </div>
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-700 uppercase">
+              Category
+            </label>
+
+            <select
+              value={eventForm.category || "general"}
+              onChange={(e) => handleChange("category", e.target.value)}
+              className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-school-primary/20"
+            >
+              <option value="academic">Academic</option>
+              <option value="sports">Sports</option>
+              <option value="cultural">Cultural</option>
+              <option value="holiday">Holiday</option>
+              <option value="general">General</option>
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-xs font-bold text-gray-700 uppercase">Date (YYYY-MM-DD)</label>

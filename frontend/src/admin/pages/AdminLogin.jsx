@@ -4,8 +4,10 @@ import { Lock, User, AlertCircle, ArrowLeft } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import SchoolLogo from "../../components/SchoolLogo";
 import Loading from "../../components/Loading";
+import usePageTitle from "../../hooks/usePageTitle";
 
 export default function AdminLogin() {
+  usePageTitle("Admin Login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);

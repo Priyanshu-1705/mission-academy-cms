@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import  { useParams, Link } from 'react-router-dom';
-import  { ArrowLeft, CalendarDays, FolderOpen, Maximize2 } from 'lucide-react';
-import  { useSchoolData } from '../context/SchoolDataContext';
+import { useParams, Link } from 'react-router-dom';
+import { ArrowLeft, CalendarDays, FolderOpen, Maximize2 } from 'lucide-react';
+import { useSchoolData } from '../context/SchoolDataContext';
 import Lightbox from "../components/Lightbox";
 import ErrorState from "../components/ErrorState";
 import Loading from "../components/Loading";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function AlbumView() {
+  usePageTitle("Album View");
   const { id } = useParams();
   const { albums, isLoading, error, refreshData } = useSchoolData();
   const [lightboxIndex, setLightboxIndex] = useState(null);
@@ -96,7 +98,7 @@ export default function AlbumView() {
       {/* Images Grid */}
       <section className="py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {album.images?.length || 0 === 0 ? (
+          {(album.images?.length ?? 0) === 0 ? (
             <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 p-8 space-y-3">
               <FolderOpen className="h-12 w-12 text-gray-400 mx-auto" />
               <h3 className="text-gray-700 font-bold text-lg">
@@ -147,7 +149,7 @@ export default function AlbumView() {
           photos={album.images}
           currentIndex={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
-          setCurrentIndex={(idx) => setLightboxIndex(idx)}
+          setCurrentIndex={setLightboxIndex}
         />
       )}
     </div>

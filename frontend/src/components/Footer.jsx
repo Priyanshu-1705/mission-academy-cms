@@ -208,7 +208,7 @@ export default function Footer() {
             <li className="flex items-start space-x-3">
               <MapPin className="h-5 w-5 text-school-primary shrink-0 mt-0.5" />
               <span className="text-gray-400 leading-relaxed">
-                 Beharipur Road, Near Bypass Crossing, Baheri, Bareilly, Uttar Pradesh - 243201
+                 Mission Academy School, Mandanpur, Baheri, Bareilly, Uttar Pradesh - 243201
               </span>
             </li>
             <li className="flex items-center space-x-3">

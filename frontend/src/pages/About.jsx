@@ -1,8 +1,10 @@
 import React from "react";
 import { Compass, Target, CalendarDays, Award, BookOpen, Handshake, Users } from 'lucide-react';
 import { useSchoolData } from "../context/SchoolDataContext";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function About() {
+  usePageTitle("About");
   const { leaders } = useSchoolData();
 
   const values = [
@@ -66,21 +68,24 @@ export default function About() {
               </h2>
               <div className="h-1 w-16 bg-school-primary rounded" />
               <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                Mission Academy Baheri was established in the year 2014 by{" "}
-                <strong>Shri R.K. Gangwar</strong> under the aegis of the
-                educational trust dedicated to rural skill upliftment. Seeing
-                local students traverse long distances to Bareilly city for
-                quality CBSE curriculum, the foundation stone was laid for a
-                state-of-the-art co-educational english medium academy in
-                Baheri.
+                Mission Academy was established in <strong>1997</strong> by two eminent
+                educationists, <strong>Late Mr. N. L. Gangwar</strong> and{" "}
+                <strong>Mr. M. S. Gangwar</strong>, with a vision to provide quality
+                education rooted in academic excellence, discipline, and moral values.
+                Located in Mandanpur, Baheri, the school began its journey with a modest
+                two-storey building comprising nine classrooms, 226 students, and a
+                dedicated team of 11 teachers.
               </p>
+
               <p className="text-gray-600 leading-relaxed text-sm">
-                Starting with just 150 students and a primary block, the
-                institution grew exponentially through sheer commitment to rigor
-                and personal discipline. Today, the academy is proudly
-                affiliated with the Central Board of Secondary Education (CBSE),
-                New Delhi up to Senior Secondary level, housing over 1200
-                scholars from different pockets of the region.
+                Over the years, Mission Academy has grown into one of the region's most
+                respected educational institutions. Today, it proudly operates two branches
+                at Mandanpur and Punjabi Colony, serving more than 2,100 students under the
+                guidance of nearly 100 experienced teachers. With a strong record of
+                academic excellence, modern facilities, and a commitment to holistic
+                development, the institution continues to nurture responsible, confident,
+                and future-ready individuals while carrying forward the vision of its
+                founders.
               </p>
             </div>
 
@@ -88,7 +93,7 @@ export default function About() {
             <div className="lg:col-span-5 relative">
               <div className="aspect-4/3 sm:aspect-video lg:aspect-square overflow-hidden rounded-3xl shadow-lg border border-gray-100">
                 <img
-                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=800&auto=format&fit=crop&q=80"
+                  src="../FrontFace.png"
                   alt="School historic assembly"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover"
@@ -108,20 +113,20 @@ export default function About() {
               <div className="p-3 bg-emerald-50 text-school-primary w-fit rounded-2xl">
                 <Compass className="h-7 w-7" />
               </div>
+
               <h3 className="font-sans font-bold text-2xl text-gray-900 tracking-tight">
-                Our Institutional Vision
+                Our Ambition
               </h3>
+
               <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                To be recognized as a premier educational sanctuary of learning
-                and character development in northern Uttar Pradesh, where
-                academic excellence meets traditional values, producing
-                confident, compassionate global citizens capable of creative
-                leadership.
+                Our ambition is to nurture every student into a confident, responsible,
+                and compassionate individual by providing quality education, strong moral
+                values, and opportunities for holistic growth.
               </p>
+
               <p className="text-gray-500 text-xs">
-                We envision a future where geographical location never limits a
-                child's capacity to innovate, lead, and conquer national level
-                competitions.
+                We strive to inspire lifelong learners who are prepared to face the future
+                with knowledge, integrity, and confidence.
               </p>
             </div>
 
@@ -130,24 +135,27 @@ export default function About() {
               <div className="p-3 bg-blue-50 text-blue-600 w-fit rounded-2xl">
                 <Target className="h-7 w-7" />
               </div>
+
               <h3 className="font-sans font-bold text-2xl text-gray-900 tracking-tight">
-                Our Core Mission
+                Our Mission
               </h3>
+
               <p className="text-gray-600 leading-relaxed text-sm sm:text-base">
-                To cultivate an environment of empirical discovery, analytical
-                training, and creative thought by providing state-of-the-art
-                facilities, highly qualified mentors, and extensive
-                co-curricular exposure. We aim to support balanced development
-                across academic, athletic, and ethical fields.
+                Our mission is to develop young minds with knowledge, creativity,
+                discipline, and compassion while fostering a spirit of curiosity,
+                leadership, and respect for others. We aim to empower every student to
+                become a responsible citizen and lifelong learner.
               </p>
+
               <ul className="space-y-2 text-xs text-gray-500">
                 <li className="flex items-center space-x-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-school-primary" />
-                  <span>Ensuring individualized scholarly attention</span>
+                  <span>Promoting academic excellence and character development</span>
                 </li>
+
                 <li className="flex items-center space-x-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-school-primary" />
-                  <span>Equipping students with modern scientific tools</span>
+                  <span>Creating confident, ethical, and future-ready individuals</span>
                 </li>
               </ul>
             </div>

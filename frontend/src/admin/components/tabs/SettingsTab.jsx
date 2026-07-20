@@ -3,9 +3,9 @@ import { Save, Lock } from "lucide-react";
 
 const SCHOOL_INFO = {
   schoolName: "Mission Academy",
-  address: "Bareilly, Uttar Pradesh",
+  address: "Mission Academy School, Mandanpur, Baheri, Bareilly, Uttar Pradesh - 243201",
   affiliationNo: "213XXXX",
-  schoolCode: "709XX",
+  schoolCode: "60373",
 };
 
 export function SettingsTab({

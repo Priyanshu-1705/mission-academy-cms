@@ -4,8 +4,10 @@ import  { FolderOpen, CalendarDays, ArrowRight } from 'lucide-react';
 import  { useSchoolData } from '../context/SchoolDataContext';
 import ErrorState from "../components/ErrorState";
 import Loading from "../components/Loading";
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function Gallery() {
+  usePageTitle("Gallery");
   const { albums, isLoading, error, refreshData } = useSchoolData();
 
   return (
@@ -15,7 +17,7 @@ export default function Gallery() {
         className="text-white py-16 sm:py-20 relative overflow-hidden bg-cover bg-center"
         style={{
           backgroundImage:
-            "url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1600&auto=format&fit=crop')",
+            "url('https://images.unsplash.com/photo-1645439811269-678eb9cb9266?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')",
         }}
       >
         <div className="absolute inset-0 bg-emerald-950/85 mix-blend-multiply" />

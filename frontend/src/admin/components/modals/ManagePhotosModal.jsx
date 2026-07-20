@@ -160,19 +160,47 @@ export function PhotosModal({
           </div>
         </div>
 
-        {/* Photo list */}
-        <div className="flex-grow overflow-y-auto divide-y divide-gray-100 min-h-[150px]">
-          {managingAlbum.photos?.map((photo, i) => (
-            <div key={i} className="py-3 flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <img src={photo.url || photo} alt="" className="w-16 h-12 object-cover rounded border border-gray-150" />
-                <p className="text-xs text-gray-500 font-medium truncate max-w-md">{photo.caption || photo.url || photo}</p>
-              </div>
-              <button onClick={() => handleModalDeletePhoto(photo.id || i)} className="p-1.5 hover:bg-red-50 text-red-600 rounded-lg">
-                <Trash className="h-4 w-4" />
-              </button>
+        {/* Existing Photos */}
+        <div className="flex-grow overflow-y-auto min-h-[180px]">
+          <h4 className="text-xs font-bold uppercase text-gray-700 mb-4">
+            Existing Photos ({managingAlbum.images?.length || 0})
+          </h4>
+
+          {managingAlbum.images?.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {managingAlbum.images.map((photo, i) => (
+                <div
+                  key={photo.id || i}
+                  className="relative bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm"
+                >
+                  <img
+                    src={photo.url}
+                    alt={photo.caption || ""}
+                    className="w-full h-32 object-cover"
+                  />
+
+                  <button
+                    onClick={() => handleModalDeletePhoto(photo.id)}
+                    className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 transition"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </button>
+
+                  {photo.caption && (
+                    <div className="p-2">
+                      <p className="text-xs text-gray-600 truncate">
+                        {photo.caption}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
-          ))}
+          ) : (
+            <div className="text-center py-10 text-gray-400 text-sm">
+              No photos in this album yet.
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end pt-4 border-t border-gray-100 shrink-0">

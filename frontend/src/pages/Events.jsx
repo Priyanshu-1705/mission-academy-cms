@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import  { Calendar, Clock, MapPin, BookOpen, Trophy, Compass, Heart, Award } from 'lucide-react';
-import  { useSchoolData } from '../context/SchoolDataContext';
+import { Calendar, Clock, MapPin, BookOpen, Trophy, Compass, Heart, Award } from 'lucide-react';
+import { useSchoolData } from '../context/SchoolDataContext';
 import ErrorState from '../components/ErrorState';
 import Loading from '../components/Loading';
+import usePageTitle from "../hooks/usePageTitle";
 
 export default function Events() {
+  usePageTitle("Events");
   const { events, isLoading, error, refreshData } = useSchoolData();
   const [selectedFilter, setSelectedFilter] = useState("all");
 
@@ -17,10 +19,11 @@ export default function Events() {
     { value: "general", label: "General Assemblies" },
   ];
 
-  const filteredEvents =
+  const filteredEvents = (
     selectedFilter === "all"
       ? events
-      : events.filter((e) => e.category === selectedFilter);
+      : events.filter((e) => e.category === selectedFilter)
+  ).sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const getCategoryColor = (cat) => {
     switch (cat) {
@@ -72,8 +75,8 @@ export default function Events() {
             Academic Calendar & Events
           </h1>
           <p className="text-gray-100 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed font-light">
-            Stay aligned with upcoming semester exams, board registration
-            periods, athletic tournaments, and public gazetted holidays.
+            Stay informed about upcoming academic activities, cultural programs,
+            sports competitions, school holidays, and other important announcements.
           </p>
         </div>
       </section>
@@ -86,11 +89,10 @@ export default function Events() {
               key={cat.value}
               id={`events-filter-${cat.value}`}
               onClick={() => setSelectedFilter(cat.value)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                selectedFilter === cat.value
-                  ? "bg-school-primary text-white shadow-sm shadow-school-primary/10"
-                  : "bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200/80"
-              }`}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${selectedFilter === cat.value
+                ? "bg-school-primary text-white shadow-sm shadow-school-primary/10"
+                : "bg-gray-100 text-gray-600 hover:text-gray-900 hover:bg-gray-200/80"
+                }`}
             >
               {cat.label}
             </button>
@@ -178,7 +180,7 @@ export default function Events() {
                       {evt.venue && evt.venue !== "N/A" && (
                         <div className="pt-2 flex items-center space-x-1.5 text-xs text-gray-500 font-semibold">
                           <MapPin className="h-4 w-4 text-school-primary" />
-                          <span>Venue: {evt.venue}</span>
+                          <span>{evt.venue}</span>
                         </div>
                       )}
                     </div>

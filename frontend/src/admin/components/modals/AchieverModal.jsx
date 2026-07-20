@@ -63,7 +63,7 @@ export function AchieverModal({ editingAchiever, achieverForm, setAchieverForm, 
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="text-xs font-bold text-gray-700 uppercase">Class (Class X / XII)</label>
+              <label className="text-xs font-bold text-gray-700 ">CLASS (Class X / XII)</label>
               <input type="text" value={achieverForm.className || ""} onChange={e => handleChange("className", e.target.value)} className="w-full border border-gray-200 px-4 py-2 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-school-primary/20" />
             </div>
             <div className="space-y-1">
