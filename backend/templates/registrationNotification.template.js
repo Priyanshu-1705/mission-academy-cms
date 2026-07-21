@@ -1,4 +1,20 @@
-export const registrationNotificationTemplate = (registration) => `
+export const registrationNotificationTemplate = (registration) => {
+    const formattedDob = new Date(registration.dob).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+    });
+
+    const submittedOn = new Date().toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+
+    return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -82,7 +98,7 @@ body{
 
 <tr>
 <td>Date of Birth</td>
-<td>${registration.dob}</td>
+<td>${formattedDob}</td>
 </tr>
 
 <tr>
@@ -127,7 +143,7 @@ body{
 
 <tr>
 <td>Submitted On</td>
-<td>${new Date().toLocaleString()}</td>
+<td>${submittedOn}</td>
 </tr>
 
 </table>
@@ -142,4 +158,5 @@ This email was generated automatically from the Mission Academy Baheri website.
 
 </body>
 </html>
-`;
+`
+};
