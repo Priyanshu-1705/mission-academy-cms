@@ -202,7 +202,7 @@ export default function MandatoryDisclosure() {
                       {/* Right: Download/View Button */}
                       <a
                         id={`disclosure-download-btn-${doc.id}`}
-                        href={doc.pdfUrl}
+                        href={`${import.meta.env.VITE_API_BASE_URL}/public/disclosures/${doc.id}/download`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center space-x-2 bg-school-bg hover:bg-school-primary text-school-primary hover:text-white px-4 sm:px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all duration-200 border border-school-primary/10 hover:shadow-sm"

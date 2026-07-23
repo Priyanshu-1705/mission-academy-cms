@@ -1,6 +1,8 @@
 import Disclosure from "../models/Disclosure.model.js";
 import { isValidObjectId } from "../utils/isValidObjectId.util.js";
 import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinary.util.js";
+import cloudinary from "../utils/cloudinary.util.js"
+import axios from "axios";
 
 const VALID_CATEGORIES = [
     "general_information",
@@ -346,6 +348,98 @@ export const deleteDisclosure = async (req, res) => {
             "[Disclosure Controller] Delete Disclosure:",
             error.message
         );
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error."
+        });
+    }
+};
+
+/**
+ * GET /api/public/disclosures/:id/download
+ *
+ * Public-facing. No auth required.
+ *
+ * Streams a disclosure PDF to the client with a friendly filename.
+ * The PDF is fetched from Cloudinary but served by our backend,
+ * allowing us to control the download filename on every device.
+ */
+export const downloadDisclosure = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid disclosure ID."
+            });
+        }
+
+        const disclosure = await Disclosure.findById(id);
+
+        if (!disclosure) {
+            return res.status(404).json({
+                success: false,
+                message: "Disclosure not found."
+            });
+        }
+
+        const filename = `${disclosure.title
+            .trim()
+            .replace(/[^\w\s-]/g, "")
+            .replace(/\s+/g, "_")}.pdf`;
+
+        try {
+            // Fetch PDF from Cloudinary as a stream
+            const cloudinaryResponse = await axios.get(disclosure.pdfUrl, {
+                responseType: "stream"
+            });
+
+            // Tell browser this is a downloadable PDF
+            res.setHeader(
+                "Content-Type",
+                cloudinaryResponse.headers["content-type"] || "application/pdf"
+            );
+
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${filename}"`
+            );
+
+            // Optional but recommended
+            res.setHeader(
+                "Cache-Control",
+                "public, max-age=86400"
+            );
+
+            res.setHeader("X-Content-Type-Options", "nosniff");
+
+            // Stream directly to client
+            cloudinaryResponse.data.on("error", (err) => {
+                console.error("[PDF Stream Error]", err);
+                res.end();
+            });
+
+            cloudinaryResponse.data.pipe(res);
+
+        } catch (error) {
+            console.error(
+                "[Disclosure Controller] Cloudinary Stream Error:",
+                error.message
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Unable to download the document."
+            });
+        }
+
+    } catch (error) {
+        console.error(
+            "[Disclosure Controller] Download Disclosure:",
+            error.message
+        );
+
         return res.status(500).json({
             success: false,
             message: "Internal server error."

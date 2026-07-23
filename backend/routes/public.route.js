@@ -9,6 +9,7 @@ import { getPublicDisclosures } from "../controllers/disclosure.controller.js";
 import { submitRegistration } from "../controllers/registration.controller.js";
 import { createEnquiry } from "../controllers/enquiry.controller.js";
 import { getPublicSettings } from "../controllers/settings.controller.js";
+import { downloadDisclosure } from "../controllers/disclosure.controller.js";
 
 const router = express.Router();
 
@@ -32,6 +33,9 @@ router.get("/other-achievements", getPublicOtherAchievements);
 
 // Retrieve all disclosures (Public Disclosures Page)
 router.get("/disclosures", getPublicDisclosures);
+
+// Download a disclosure PDF (Public Disclosures Page)
+router.get("/disclosures/:id/download", downloadDisclosure);
 
 // Submit a new admission registration (Public Admissions Page)
 router.post("/registrations", submitRegistration);
